@@ -1,4 +1,4 @@
-CREATE DATABASE delilah_resto;
+CREATE DATABASE delilah_resto CHARACTER SET utf8 COLLATE utf8_spanish_ci;
 USE delilah_resto;
 
 CREATE TABLE IF NOT EXISTS users(
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS users(
 CREATE TABLE IF NOT EXISTS products(
 	id INT(11) UNSIGNED AUTO_INCREMENT,
 	nombre VARCHAR(150) NOT NULL CHECK (nombre <> ""),
-	price DOUBLE(4, 2) NOT NULL,
+	price DOUBLE(4, 2) UNSIGNED NOT NULL,
 	PRIMARY KEY (id)
 );
 
@@ -41,15 +41,34 @@ CREATE TABLE IF NOT EXISTS addresses(
 
 CREATE TABLE IF NOT EXISTS orders(
 	id INT(11) UNSIGNED AUTO_INCREMENT,
-	usuario_id INT(11) UNSIGNED,
-	estado_id INT(2) UNSIGNED,
+	usuario_id INT(11) UNSIGNED NOT NULL,
+	estado_id INT(2) UNSIGNED NOT NULL,
 	fecha_hora DATE NOT NULL,
-	total_orders DOUBLE(6, 2) NOT NULL,
+	total_ordenes DOUBLE(6, 2) UNSIGNED NOT NULL,
 	PRIMARY KEY (id),
 	FOREIGN KEY (usuario_id)
-		REFERENCES users(id)
-		ON DELETE SET NULL,
+		REFERENCES users(id),
 	FOREIGN KEY (estado_id)
 		REFERENCES statuses(id)
 		ON DELETE RESTRICT
 );
+
+CREATE TABLE IF NOT EXISTS food_orders(
+	orden_id INT(11) UNSIGNED,
+	producto_id INT (11) UNSIGNED,
+	cantidad INT(4) UNSIGNED NOT NULL CHECK (cantidad <> 0),
+	total DOUBLE(4, 2) UNSIGNED NOT NULL,
+	PRIMARY KEY (orden_id, producto_id),
+	FOREIGN KEY (orden_id)
+		REFERENCES orders(id)
+		ON DELETE RESTRICT,
+	FOREIGN KEY (producto_id)
+		REFERENCES products(id)
+		ON DELETE RESTRICT
+);
+
+-- Insertar datos --
+INSERT INTO statuses (nombre) VALUES ("Confirmado");
+INSERT INTO statuses (nombre) VALUES ("En preparación");
+INSERT INTO statuses (nombre) VALUES ("En camino");
+INSERT INTO statuses (nombre) VALUES ("Entregado");
