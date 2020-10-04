@@ -47,10 +47,11 @@ CREATE TABLE IF NOT EXISTS orders(
 	total_ordenes FLOAT(20, 2) UNSIGNED NOT NULL,
 	PRIMARY KEY (id),
 	FOREIGN KEY (usuario_id)
-		REFERENCES users(id),
+		REFERENCES users(id)
+		ON DELETE CASCADE,
 	FOREIGN KEY (estado_id)
 		REFERENCES statuses(id)
-		ON DELETE RESTRICT
+		ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS food_orders(
@@ -61,10 +62,10 @@ CREATE TABLE IF NOT EXISTS food_orders(
 	PRIMARY KEY (orden_id, producto_id),
 	FOREIGN KEY (orden_id)
 		REFERENCES orders(id)
-		ON DELETE RESTRICT,
+		ON DELETE CASCADE,
 	FOREIGN KEY (producto_id)
 		REFERENCES products(id)
-		ON DELETE RESTRICT
+		ON DELETE CASCADE
 );
 
 -- Insertar estados --
