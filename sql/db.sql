@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS users(
 CREATE TABLE IF NOT EXISTS products(
 	id INT(11) UNSIGNED AUTO_INCREMENT,
 	nombre VARCHAR(150) NOT NULL CHECK (nombre <> ""),
-	price DOUBLE(4, 2) UNSIGNED NOT NULL,
+	precio FLOAT(20, 2) UNSIGNED NOT NULL,
 	PRIMARY KEY (id)
 );
 
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS orders(
 	usuario_id INT(11) UNSIGNED NOT NULL,
 	estado_id INT(2) UNSIGNED NOT NULL,
 	fecha_hora DATE NOT NULL,
-	total_ordenes DOUBLE(6, 2) UNSIGNED NOT NULL,
+	total_ordenes FLOAT(20, 2) UNSIGNED NOT NULL,
 	PRIMARY KEY (id),
 	FOREIGN KEY (usuario_id)
 		REFERENCES users(id),
@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS food_orders(
 	orden_id INT(11) UNSIGNED,
 	producto_id INT (11) UNSIGNED,
 	cantidad INT(4) UNSIGNED NOT NULL CHECK (cantidad <> 0),
-	total DOUBLE(4, 2) UNSIGNED NOT NULL,
+	total FLOAT(20, 2) UNSIGNED NOT NULL,
 	PRIMARY KEY (orden_id, producto_id),
 	FOREIGN KEY (orden_id)
 		REFERENCES orders(id)
@@ -67,8 +67,41 @@ CREATE TABLE IF NOT EXISTS food_orders(
 		ON DELETE RESTRICT
 );
 
--- Insertar datos --
+-- Insertar estados --
 INSERT INTO statuses (nombre) VALUES ("Confirmado");
 INSERT INTO statuses (nombre) VALUES ("En preparación");
 INSERT INTO statuses (nombre) VALUES ("En camino");
 INSERT INTO statuses (nombre) VALUES ("Entregado");
+
+-- Insertar productos --
+USE delilah_resto;
+
+INSERT
+	INTO
+	products(nombre, precio)
+VALUES ("Bagel de Salmón", 425.00);
+
+INSERT
+	INTO
+	products(nombre, precio)
+VALUES ("Hamburguesa Clásica", 350.00);
+
+INSERT
+	INTO
+	products(nombre, precio)
+VALUES ("Sandwich veggie", 310.00);
+
+INSERT
+	INTO
+	products(nombre, precio)
+VALUES ("Ensalada veggie", 340.00);
+
+INSERT
+	INTO
+	products(nombre, precio)
+VALUES ("Focaccia", 300.00);
+
+INSERT
+	INTO
+	products(nombre, precio)
+VALUES ("Sandwich Focaccia", 440.00);
