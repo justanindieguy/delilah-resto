@@ -11,9 +11,11 @@ const Product = sequelize.define(
     },
     nombre: {
       type: Sequelize.STRING,
+      allowNull: false,
     },
     precio: {
-      type: Sequelize.FLOAT,
+      type: Sequelize.FLOAT(10, 2),
+      allowNull: false,
     },
   },
   {
