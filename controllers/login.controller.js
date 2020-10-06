@@ -1,6 +1,9 @@
+require('dotenv/config');
+const { TOKEN_SECRET } = process.env;
 const { QueryTypes } = require('sequelize');
 const { validationResult } = require('express-validator');
 const { SERVER_ERROR_MSG } = require('../utils/messages');
+const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const sequelize = require('../database/database');
 
@@ -15,7 +18,7 @@ async function login(req, res) {
 
     // Checking if email exists.
     const [user] = await sequelize.query(
-      `SELECT email, pass FROM users WHERE email="${email}"`,
+      `SELECT email, pass, admin FROM users WHERE email="${email}"`,
       {
         type: QueryTypes.SELECT,
       }
@@ -34,7 +37,19 @@ async function login(req, res) {
         .status(400)
         .json({ error: 'Usuario o contraseña incorrectos.' });
 
-    return res.status(200).send('Logged in!');
+    // Create and assign a token.
+    const token = jwt.sign(
+      {
+        email: user.email,
+        isAdmin: user.admin,
+      },
+      TOKEN_SECRET
+    );
+
+    return res
+      .status(200)
+      .header('auth-token', token)
+      .json({ message: 'Inicio de sesión exitoso.' });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: SERVER_ERROR_MSG });
