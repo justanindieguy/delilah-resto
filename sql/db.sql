@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS statuses(
 	PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS orders(
+CREATE TABLE IF NOT EXISTS shippings(
 	id INT(11) UNSIGNED AUTO_INCREMENT,
 	usuario_id INT(11) UNSIGNED NOT NULL,
 	estado_id INT(2) UNSIGNED NOT NULL,
@@ -41,13 +41,13 @@ CREATE TABLE IF NOT EXISTS orders(
 		ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS food_orders(
+CREATE TABLE IF NOT EXISTS orders(
 	orden_id INT(11) UNSIGNED,
 	producto_id INT (11) UNSIGNED,
 	cantidad INT(4) UNSIGNED NOT NULL CHECK (cantidad <> 0),
 	PRIMARY KEY (orden_id, producto_id),
 	FOREIGN KEY (orden_id)
-		REFERENCES orders(id)
+		REFERENCES shippings(id)
 		ON DELETE CASCADE,
 	FOREIGN KEY (producto_id)
 		REFERENCES products(id)

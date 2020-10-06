@@ -2,20 +2,17 @@ const Sequelize = require('sequelize');
 const sequelize = require('../database/database');
 const Order = require('./Order');
 
-const Product = sequelize.define(
-  'product',
+const Shipping = sequelize.define(
+  'shipping',
   {
     id: {
       type: Sequelize.INTEGER,
       primaryKey: true,
       autoIncrement: true,
     },
-    nombre: {
-      type: Sequelize.STRING,
-      allowNull: false,
-    },
-    precio: {
-      type: Sequelize.FLOAT(10, 2),
+    fecha_hora: {
+      type: Sequelize.DATE,
+      defaultValue: Date.now(),
       allowNull: false,
     },
   },
@@ -24,6 +21,7 @@ const Product = sequelize.define(
   }
 );
 
-Product.hasMany(Order, { foreignKey: 'pedido_id', sourceKey: 'id' });
+Shipping.hasMany(Order, { foreignKey: 'pedido_id', sourceKey: 'id' });
+Order.belongsTo(Shipping, { foreignKey: 'pedido_id', sourceKey: 'id' });
 
-module.exports = Product;
+module.exports = Shipping;

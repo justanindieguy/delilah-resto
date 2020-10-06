@@ -5,8 +5,8 @@ const idValidator = require('../validation/id');
 const controller = require('../controllers/products.controller');
 
 // /api/v1/products
-router.get('/', controller.getProducts);
 router.post('/', validator.newProduct, controller.createProduct);
+router.get('/', controller.getProducts);
 
 // /api/v1/products/:productId
 router.get('/:id', idValidator, controller.getOneProduct);
