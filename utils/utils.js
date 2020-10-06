@@ -1,9 +1,27 @@
-function getUpdateSentences(updateParams) {
+function getInsertSentences(insertValues) {
   const sentences = [];
 
-  for (let key in updateParams) {
-    if (updateParams[key]) {
-      let value = updateParams[key];
+  for (let key in insertValues) {
+    if (insertValues[key]) {
+      let value = insertValues[key];
+
+      if (typeof value === 'string') {
+        sentences.push(`"${value}"`);
+      } else {
+        sentences.push(`${value}`);
+      }
+    }
+  }
+
+  return sentences;
+}
+
+function getUpdateSentences(updateValues) {
+  const sentences = [];
+
+  for (let key in updateValues) {
+    if (updateValues[key]) {
+      let value = updateValues[key];
 
       if (typeof value === 'string') {
         sentences.push(`${key}="${value}"`);
@@ -16,4 +34,4 @@ function getUpdateSentences(updateParams) {
   return sentences;
 }
 
-module.exports = { getUpdateSentences };
+module.exports = { getInsertSentences, getUpdateSentences };
