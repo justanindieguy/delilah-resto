@@ -1,4 +1,3 @@
-const { ONLY_INT_MSG } = require('../utils/messages');
 const { body } = require('express-validator');
 const validator = require('validator');
 
