@@ -22,7 +22,7 @@ async function registerUser(req, res) {
 
     const { email, telefono } = req.body;
     const emailExists = await sequelize.query(
-      `SELECT * FROM users WHERE email="${email}"`,
+      `SELECT id, email, rol_id FROM users WHERE email="${email}"`,
       {
         type: QueryTypes.SELECT,
         model: User,
@@ -37,7 +37,7 @@ async function registerUser(req, res) {
     // Check if phone already exists.
     if (telefono) {
       const phoneExists = await sequelize.query(
-        `SELECT * FROM users WHERE telefono="${telefono}"`,
+        `SELECT id, email, rol_id FROM users WHERE telefono="${telefono}"`,
         {
           type: QueryTypes.SELECT,
           model: User,
@@ -75,7 +75,7 @@ async function registerUser(req, res) {
     }
 
     const [newUser] = await sequelize.query(
-      `SELECT * FROM users WHERE id=${id[0]}`,
+      `SELECT nombre, apellido_p, apellido_m, telefono, email, direccion FROM users WHERE id=${id[0]}`,
       {
         type: QueryTypes.SELECT,
         model: User,

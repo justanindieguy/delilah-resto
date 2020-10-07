@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 const sequelize = require('../database/database');
-const Shipping = require('./Shipping');
+const Delivery = require('./Delivery');
 
 const User = sequelize.define(
   'user',
@@ -47,6 +47,6 @@ const User = sequelize.define(
   }
 );
 
-User.hasMany(Shipping, { foreignKey: 'usuario:id', sourceKey: 'id' });
+User.hasMany(Delivery, { foreignKey: 'usuario:id', sourceKey: 'id' });
 
 module.exports = User;

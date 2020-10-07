@@ -18,7 +18,7 @@ async function login(req, res) {
 
     // Checking if email exists.
     const [user] = await sequelize.query(
-      `SELECT email, pass, admin FROM users WHERE email="${email}"`,
+      `SELECT id, email, pass, admin FROM users WHERE email="${email}"`,
       {
         type: QueryTypes.SELECT,
       }
@@ -40,6 +40,7 @@ async function login(req, res) {
     // Create and assign a token.
     const token = jwt.sign(
       {
+        id: user.id,
         email: user.email,
         isAdmin: user.admin,
       },

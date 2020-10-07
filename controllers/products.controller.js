@@ -19,7 +19,7 @@ async function createProduct(req, res) {
     );
 
     const [newProduct] = await sequelize.query(
-      `SELECT * FROM products WHERE id=${id}`,
+      `SELECT id, nombre, precio FROM products WHERE id=${id}`,
       {
         type: QueryTypes.SELECT,
         model: Product,
@@ -60,7 +60,7 @@ async function getOneProduct(req, res) {
   try {
     const { id } = req.params;
     const products = await sequelize.query(
-      `SELECT * FROM products WHERE id=${id}`,
+      `SELECT id, nombre, precio FROM products WHERE id=${id}`,
       { type: QueryTypes.SELECT, model: Product, mapToModel: true }
     );
 
@@ -96,7 +96,7 @@ async function updateProduct(req, res) {
     );
 
     const [product] = await sequelize.query(
-      `SELECT * FROM products WHERE id=${id}`,
+      `SELECT id, nombre, precio FROM products WHERE id=${id}`,
       {
         type: QueryTypes.SELECT,
         model: Product,
