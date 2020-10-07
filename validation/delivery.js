@@ -4,8 +4,8 @@ const validator = require('validator');
 
 const delivery = [
   body('pago_id')
-    .isInt()
-    .withMessage(ONLY_INT_MSG)
+    .isInt({ min: 1, max: 3 })
+    .withMessage('Sólo se aceptan números enteros dentro del rango 1-3.')
     .not()
     .isEmpty()
     .withMessage('El campo pago_id es obligatorio.'),
