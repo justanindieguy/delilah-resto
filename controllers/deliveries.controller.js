@@ -34,7 +34,7 @@ async function createDelivery(req, res) {
       const { producto_id, cantidad } = order;
 
       await sequelize.query(
-        `INSERT INTO orders(orden_id, producto_id, cantidad) VALUES (${deliveryId}, ${producto_id}, ${cantidad})`
+        `INSERT INTO orders(pedido_id, producto_id, cantidad) VALUES (${deliveryId}, ${producto_id}, ${cantidad})`
       );
     });
 
@@ -45,7 +45,7 @@ async function createDelivery(req, res) {
     );
 
     const orders = await sequelize.query(
-      `SELECT producto_id, cantidad FROM orders WHERE orden_id=${deliveryId}`,
+      `SELECT producto_id, cantidad FROM orders WHERE pedido_id=${deliveryId}`,
       { type: QueryTypes.SELECT, model: Order, mapToModel: true }
     );
 
@@ -59,8 +59,198 @@ async function createDelivery(req, res) {
   }
 }
 
-function getDeliveries(req, res) {
-  res.send('Getting all the orders.');
+async function getAllDeliveries(req, res) {
+  try {
+    const deliveries = await sequelize.query(
+      `
+      SELECT
+        d.id,
+        u.email,
+        s.nombre AS estado,
+        pm.nombre AS tipo_pago,
+        d.fecha_hora
+      FROM
+        deliveries AS d
+      JOIN statuses AS s ON
+        d.estado_id = s.id
+      JOIN payment_methods AS pm ON
+        d.pago_id = pm.id
+      JOIN users AS u ON
+        d.usuario_id = u.id`,
+      { type: QueryTypes.SELECT }
+    );
+
+    if (deliveries.length === 0)
+      return res.status(404).json({ message: 'Aún no hay pedidos.' });
+
+    for (let delivery of deliveries) {
+      const { id: deliveryId } = delivery;
+
+      await getDeliveryTotal(delivery, deliveryId);
+      await getDeliveryProducts(delivery, deliveryId);
+    }
+
+    return res.status(200).json(deliveries);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: SERVER_ERROR_MSG });
+  }
 }
 
-module.exports = { createDelivery, getDeliveries };
+async function getUserDeliveries(req, res) {
+  try {
+    const { id: userId } = req.user;
+
+    const deliveries = await sequelize.query(
+      `
+      SELECT
+        d.id,
+        u.email,
+        s.nombre AS estado,
+        pm.nombre AS tipo_pago,
+        d.fecha_hora
+      FROM
+        deliveries AS d
+      JOIN statuses AS s ON
+        d.estado_id = s.id
+      JOIN payment_methods AS pm ON
+        d.pago_id = pm.id
+      JOIN users AS u ON
+        d.usuario_id = u.id
+      WHERE u.id = ${userId}`,
+      { type: QueryTypes.SELECT }
+    );
+
+    if (deliveries.length === 0)
+      return res.status(404).json({ message: 'Aún no tienes pedidos.' });
+
+    for (let delivery of deliveries) {
+      const { id: deliveryId } = delivery;
+
+      await getDeliveryTotal(delivery, deliveryId);
+      await getDeliveryProducts(delivery, deliveryId);
+    }
+
+    return res.status(200).json(deliveries);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: SERVER_ERROR_MSG });
+  }
+}
+
+async function getOneDelivery(req, res) {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty())
+    return res.status(400).json({ error: errors.array() });
+
+  try {
+    const { id: userId } = req.user;
+    const { id: deliveryId } = req.params;
+
+    const [delivery] = await sequelize.query(
+      `
+    SELECT
+      d.id,
+      u.email,
+      s.nombre AS estado,
+      pm.nombre AS tipo_pago,
+      d.fecha_hora
+    FROM
+      deliveries AS d
+    JOIN statuses AS s ON
+      d.estado_id = s.id
+    JOIN payment_methods AS pm ON
+      d.pago_id = pm.id
+    JOIN users AS u ON
+      d.usuario_id = u.id
+    WHERE u.id = ${userId} AND d.id=${deliveryId}`,
+      { type: QueryTypes.SELECT }
+    );
+
+    if (delivery.length === 0)
+      return res.status(404).json({
+        error:
+          'No hay ningún pedido con el ID indicado asociado a este usuario.',
+      });
+
+    await getDeliveryTotal(delivery, deliveryId);
+    await getDeliveryProducts(delivery, deliveryId);
+
+    return res.status(200).json(delivery);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: SERVER_ERROR_MSG });
+  }
+}
+
+async function getDeliveryProducts(delivery, deliveryId) {
+  const products = await sequelize.query(
+    `
+    SELECT
+      p.nombre,
+      p.precio,
+      o.cantidad,
+      (o.cantidad * p.precio) AS total
+    FROM
+      orders AS o
+    JOIN products AS p ON
+      o.producto_id = p.id
+    WHERE o.pedido_id = ${deliveryId};`,
+    { type: QueryTypes.SELECT }
+  );
+
+  delivery.productos = products;
+}
+
+async function getDeliveryTotal(delivery, deliveryId) {
+  delivery.total = 0;
+
+  const [{ total }] = await sequelize.query(
+    `
+  SELECT
+	  SUM(o.cantidad * p.precio) AS total
+  FROM
+	  orders AS o
+  JOIN products AS p ON
+	  p.id = o.producto_id
+  WHERE
+	  o.pedido_id = ${deliveryId}
+  GROUP BY
+	  o.pedido_id;`,
+    { type: QueryTypes.SELECT }
+  );
+
+  delivery.total = total;
+}
+
+async function updateDelivery(req, res) {
+  const errors = validationResult(req);
+  const body = req.body;
+
+  if (!errors.isEmpty())
+    return res.status(400).json({ error: errors.array() });
+
+  if (Object.keys(body).length === 0 && body.constructor === Object)
+    return res
+      .status(400)
+      .json({ error: 'Se requiere por lo menos un campo para actualizar.' });
+
+  try {
+    const { id } = req.params;
+    const updateParams = { estado_id: body.estado_id, pago_id: body.pago_id };
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: SERVER_ERROR_MSG });
+  }
+
+  res.send('Hello, World!');
+}
+
+module.exports = {
+  createDelivery,
+  getAllDeliveries,
+  getUserDeliveries,
+  getOneDelivery,
+  updateDelivery,
+};

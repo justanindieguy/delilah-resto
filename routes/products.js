@@ -21,6 +21,7 @@ router.get('/:id', idValidator, controller.getOneProduct);
 
 router.patch(
   '/:id',
+  idValidator,
   token.verifyToken,
   token.checkIfIsAdmin,
   validator.updateProduct,
@@ -29,9 +30,9 @@ router.patch(
 
 router.delete(
   '/:id',
+  idValidator,
   token.verifyToken,
   token.checkIfIsAdmin,
-  idValidator,
   controller.deleteProduct
 );
 

@@ -61,11 +61,11 @@ CREATE TABLE IF NOT EXISTS deliveries(
 );
 
 CREATE TABLE IF NOT EXISTS orders(
-	orden_id INT(11) UNSIGNED,
+	pedido_id INT(11) UNSIGNED,
 	producto_id INT (11) UNSIGNED,
 	cantidad INT(4) UNSIGNED NOT NULL CHECK (cantidad <> 0),
-	PRIMARY KEY (orden_id, producto_id),
-	FOREIGN KEY (orden_id)
+	PRIMARY KEY (pedido_id, producto_id),
+	FOREIGN KEY (pedido_id)
 		REFERENCES deliveries(id)
 		ON DELETE CASCADE,
 	FOREIGN KEY (producto_id)
@@ -101,8 +101,6 @@ INSERT INTO payment_methods (nombre) VALUES ("Tarjeta de crédito");
 INSERT INTO payment_methods (nombre) VALUES ("Tarjeta de débito");
 
 -- Insertar productos --
-USE delilah_resto;
-
 INSERT
 	INTO
 	products(nombre, precio)

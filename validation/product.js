@@ -11,9 +11,6 @@ const newProduct = [
     .withMessage('El precio es obligatorio.'),
 ];
 
-const updateProduct = [
-  param('id', ONLY_INT_MSG).isInt(),
-  body('precio', ONLY_FLOAT_MSG).isFloat().optional(),
-];
+const updateProduct = [body('precio', ONLY_FLOAT_MSG).isFloat().optional()];
 
 module.exports = { newProduct, updateProduct };
