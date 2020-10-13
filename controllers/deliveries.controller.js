@@ -1,6 +1,7 @@
 const { QueryTypes } = require('sequelize');
 const { validationResult } = require('express-validator');
 const { SERVER_ERROR_MSG } = require('../utils/messages');
+const { getUpdateSentences } = require('../utils/utils');
 const verifyProducts = require('../validation/verifyProducts');
 const sequelize = require('../database/database');
 const Delivery = require('../models/Delivery');
@@ -81,7 +82,7 @@ async function getAllDeliveries(req, res) {
     );
 
     if (deliveries.length === 0)
-      return res.status(404).json({ message: 'Aún no hay pedidos.' });
+      return res.status(404).json({ error: 'Aún no hay pedidos.' });
 
     for (let delivery of deliveries) {
       const { id: deliveryId } = delivery;
@@ -239,12 +240,43 @@ async function updateDelivery(req, res) {
   try {
     const { id } = req.params;
     const updateParams = { estado_id: body.estado_id, pago_id: body.pago_id };
+    const setSentences = getUpdateSentences(updateParams);
+
+    const [result] = await sequelize.query(
+      `UPDATE deliveries SET ${setSentences.join(', ')} WHERE id=${id}`
+    );
+
+    if (result.affectedRows === 0)
+      return res.status(409).json({ message: 'Nada que actualizar.' });
+
+    const [product] = await sequelize.query(
+      `
+    SELECT
+      d.id,
+      u.email,
+      s.nombre AS estado,
+      pm.nombre AS tipo_pago,
+      d.fecha_hora
+    FROM
+      deliveries AS d
+    JOIN statuses AS s ON
+      d.estado_id = s.id
+    JOIN payment_methods AS pm ON
+      d.pago_id = pm.id
+    JOIN users AS u ON
+      d.usuario_id = u.id
+    WHERE
+      d.id = ${id}`,
+      { type: QueryTypes.SELECT }
+    );
+
+    return res
+      .status(200)
+      .json({ message: 'Pedido actualizado.', data: product });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: SERVER_ERROR_MSG });
   }
-
-  res.send('Hello, World!');
 }
 
 module.exports = {

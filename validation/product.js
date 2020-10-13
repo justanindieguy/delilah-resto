@@ -1,5 +1,5 @@
 const { ONLY_INT_MSG, ONLY_FLOAT_MSG } = require('../utils/messages');
-const { param, body } = require('express-validator');
+const { body } = require('express-validator');
 
 const newProduct = [
   body('nombre', 'El nombre es obligatorio.').not().isEmpty(),

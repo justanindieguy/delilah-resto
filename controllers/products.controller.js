@@ -38,11 +38,19 @@ async function createProduct(req, res) {
 
 async function getProducts(req, res) {
   try {
-    const products = await sequelize.query('SELECT * FROM products', {
-      type: QueryTypes.SELECT,
-      model: Product,
-      mapToModel: true,
-    });
+    const products = await sequelize.query(
+      'SELECT id, nombre, precio FROM products',
+      {
+        type: QueryTypes.SELECT,
+        model: Product,
+        mapToModel: true,
+      }
+    );
+
+    if (products.length === 0)
+      return res
+        .status(404)
+        .json({ error: 'Aún no hay productos registrados.' });
 
     res.status(200).json(products);
   } catch (err) {
@@ -82,9 +90,9 @@ async function updateProduct(req, res) {
     return res.status(400).json({ error: errors.array() });
 
   if (Object.keys(body).length === 0 && body.constructor === Object)
-    return res.status(400).json({
-      error: 'Se requiere por lo menos un campo para actualizar.',
-    });
+    return res
+      .status(400)
+      .json({ error: 'Se requiere por lo menos un campo para actualizar.' });
 
   try {
     const { id } = req.params;
@@ -95,6 +103,9 @@ async function updateProduct(req, res) {
       `UPDATE products SET ${setSentences.join(', ')} WHERE id=${id}`
     );
 
+    if (result.affectedRows === 0)
+      return res.status(409).json({ message: 'Nada que actualizar.' });
+
     const [product] = await sequelize.query(
       `SELECT id, nombre, precio FROM products WHERE id=${id}`,
       {
@@ -103,9 +114,6 @@ async function updateProduct(req, res) {
         mapToModel: true,
       }
     );
-
-    if (result.affectedRows === 0)
-      return res.status(409).json({ message: 'Nada que actualizar.' });
 
     return res
       .status(200)

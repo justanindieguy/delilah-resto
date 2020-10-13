@@ -7,7 +7,7 @@ const token = require('../validation/verifyToken');
 
 // /api/v1/deliveries
 router.get(
-  '/allDeliveries',
+  '/',
   token.verifyToken,
   token.checkIfIsAdmin,
   controller.getAllDeliveries
@@ -28,9 +28,9 @@ router.get('/:id', idValidator, token.verifyToken, controller.getOneDelivery);
 router.patch(
   '/:id',
   idValidator,
+  validator.updateDelivery,
   token.verifyToken,
   token.checkIfIsAdmin,
-  validator.updateDelivery,
   controller.updateDelivery
 );
 
