@@ -69,33 +69,11 @@ async function registerUser(req, res) {
       );
     }
 
-    const [newUser] = await sequelize.query(
-      `
-        SELECT
-	        CONCAT(nombre, " ", apellido_p, " ", apellido_m) AS nombre,
-	        direccion,
-	        telefono,
-	        email
-        FROM
-	        users
-        WHERE
-	        id = ${id[0]}`,
-      {
-        type: QueryTypes.SELECT,
-        model: User,
-        mapToModel: true,
-      }
-    );
+    const newUser = await selectUser(id[0]);
 
-    return res.status(200).json({
-      message: 'Nuevo usuario registrado.',
-      data: {
-        nombre: `${newUser.nombre} ${newUser.apellido_p} ${newUser.apellido_m}`,
-        telefono: newUser.telefono,
-        email: newUser.email,
-        direccion: newUser.direccion,
-      },
-    });
+    return res
+      .status(200)
+      .json({ message: 'Nuevo usuario registrado.', data: newUser });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: SERVER_ERROR_MSG });
@@ -132,18 +110,7 @@ async function getOneUser(req, res) {
   try {
     const { id: userId } = req.user;
 
-    const [user] = await sequelize.query(
-      `
-      SELECT
-        CONCAT(nombre, " ", apellido_p, " ", apellido_m) AS nombre,
-        direccion,
-        telefono,
-        email
-      FROM
-        users
-      WHERE id=${userId}`,
-      { type: QueryTypes.SELECT }
-    );
+    const user = await selectUser(userId);
 
     if (!user)
       return res.status(404).json({ error: 'Usuario no encontrado.' });
@@ -192,20 +159,7 @@ async function updateUser(req, res) {
     if (result.affectedRows === 0)
       return res.status(409).json({ message: 'Nada que actualizar.' });
 
-    const [user] = await sequelize.query(
-      `
-      SELECT
-	      CONCAT(nombre, " ", apellido_p, " ", apellido_m) AS nombre,
-	      direccion,
-	      telefono,
-	      email
-      FROM
-	      users
-      WHERE
-	      id = ${userId}
-    `,
-      { type: QueryTypes.SELECT, model: User, mapToModel: true }
-    );
+    const user = await selectUser(userId);
 
     return res
       .status(200)
@@ -213,6 +167,28 @@ async function updateUser(req, res) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: SERVER_ERROR_MSG });
+  }
+}
+
+async function selectUser(userId) {
+  try {
+    const [user] = await sequelize.query(
+      `
+      SELECT
+        CONCAT(nombre, " ", apellido_p, " ", apellido_m) AS nombre,
+        direccion,
+        telefono,
+        email
+      FROM
+        users
+      WHERE id=${userId}`,
+      { type: QueryTypes.SELECT, model: User, mapToModel: true }
+    );
+
+    return user;
+  } catch (err) {
+    console.error(err);
+    return null;
   }
 }
 

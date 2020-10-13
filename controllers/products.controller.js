@@ -18,14 +18,7 @@ async function createProduct(req, res) {
       `INSERT INTO products(nombre, precio) VALUES ("${name}", ${price})`
     );
 
-    const [newProduct] = await sequelize.query(
-      `SELECT id, nombre, precio FROM products WHERE id=${id}`,
-      {
-        type: QueryTypes.SELECT,
-        model: Product,
-        mapToModel: true,
-      }
-    );
+    const newProduct = await selectProduct(id);
 
     return res
       .status(200)
@@ -66,16 +59,13 @@ async function getOneProduct(req, res) {
     return res.status(400).json({ errors: errors.array() });
 
   try {
-    const { id } = req.params;
-    const products = await sequelize.query(
-      `SELECT id, nombre, precio FROM products WHERE id=${id}`,
-      { type: QueryTypes.SELECT, model: Product, mapToModel: true }
-    );
+    const { id: productId } = req.params;
+    const product = await selectProduct(productId);
 
-    if (products.length === 0)
-      return res.status(404).json({ message: 'Producto no encontrado.' });
+    if (!product)
+      return res.status(404).json({ error: 'Producto no encontrado.' });
 
-    return res.status(200).json(products[0]);
+    return res.status(200).json(product);
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: SERVER_ERROR_MSG });
@@ -95,25 +85,18 @@ async function updateProduct(req, res) {
       .json({ error: 'Se requiere por lo menos un campo para actualizar.' });
 
   try {
-    const { id } = req.params;
+    const { id: productId } = req.params;
     const updateParams = { nombre: body.nombre, precio: body.precio };
     const setSentences = getUpdateSentences(updateParams);
 
     const [result] = await sequelize.query(
-      `UPDATE products SET ${setSentences.join(', ')} WHERE id=${id}`
+      `UPDATE products SET ${setSentences.join(', ')} WHERE id=${productId}`
     );
 
     if (result.affectedRows === 0)
       return res.status(409).json({ message: 'Nada que actualizar.' });
 
-    const [product] = await sequelize.query(
-      `SELECT id, nombre, precio FROM products WHERE id=${id}`,
-      {
-        type: QueryTypes.SELECT,
-        model: Product,
-        mapToModel: true,
-      }
-    );
+    const product = await selectProduct(productId);
 
     return res
       .status(200)
@@ -143,6 +126,24 @@ async function deleteProduct(req, res) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: SERVER_ERROR_MSG });
+  }
+}
+
+async function selectProduct(productId) {
+  try {
+    const [product] = await sequelize.query(
+      `SELECT id, nombre, precio FROM products WHERE id=${productId}`,
+      {
+        type: QueryTypes.SELECT,
+        model: Product,
+        mapToModel: true,
+      }
+    );
+
+    return product;
+  } catch (err) {
+    console.error(err);
+    return null;
   }
 }
 
