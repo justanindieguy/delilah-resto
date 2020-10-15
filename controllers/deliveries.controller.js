@@ -35,7 +35,7 @@ async function createDelivery(req, res) {
       const { producto_id, cantidad } = order;
 
       await sequelize.query(
-        `INSERT INTO orders(pedido_id, producto_id, cantidad) VALUES (${deliveryId}, ${producto_id}, ${cantidad})`
+        `INSERT INTO orders(orden_id, producto_id, cantidad) VALUES (${deliveryId}, ${producto_id}, ${cantidad})`
       );
     });
 
@@ -46,7 +46,7 @@ async function createDelivery(req, res) {
     );
 
     const orders = await sequelize.query(
-      `SELECT producto_id, cantidad FROM orders WHERE pedido_id=${deliveryId}`,
+      `SELECT producto_id, cantidad FROM orders WHERE orden_id=${deliveryId}`,
       { type: QueryTypes.SELECT, model: Order, mapToModel: true }
     );
 
@@ -63,21 +63,7 @@ async function createDelivery(req, res) {
 async function getAllDeliveries(req, res) {
   try {
     const deliveries = await sequelize.query(
-      `
-      SELECT
-        d.id,
-        u.email,
-        s.nombre AS estado,
-        pm.nombre AS tipo_pago,
-        d.fecha_hora
-      FROM
-        deliveries AS d
-      JOIN statuses AS s ON
-        d.estado_id = s.id
-      JOIN payment_methods AS pm ON
-        d.pago_id = pm.id
-      JOIN users AS u ON
-        d.usuario_id = u.id`,
+      `SELECT d.id, u.email, s.nombre AS estado, pm.nombre AS tipo_pago, d.fecha_hora FROM deliveries AS d JOIN statuses AS s ON d.estado_id = s.id JOIN payment_methods AS pm ON d.pago_id = pm.id JOIN users AS u ON d.usuario_id = u.id`,
       { type: QueryTypes.SELECT }
     );
 
@@ -103,22 +89,7 @@ async function getUserDeliveries(req, res) {
     const { id: userId } = req.user;
 
     const deliveries = await sequelize.query(
-      `
-      SELECT
-        d.id,
-        u.email,
-        s.nombre AS estado,
-        pm.nombre AS tipo_pago,
-        d.fecha_hora
-      FROM
-        deliveries AS d
-      JOIN statuses AS s ON
-        d.estado_id = s.id
-      JOIN payment_methods AS pm ON
-        d.pago_id = pm.id
-      JOIN users AS u ON
-        d.usuario_id = u.id
-      WHERE u.id = ${userId}`,
+      `SELECT d.id, u.email, s.nombre AS estado, pm.nombre AS tipo_pago, d.fecha_hora FROM deliveries AS d JOIN statuses AS s ON d.estado_id = s.id JOIN payment_methods AS pm ON d.pago_id = pm.id JOIN users AS u ON d.usuario_id = u.id WHERE u.id = ${userId}`,
       { type: QueryTypes.SELECT }
     );
 
@@ -149,23 +120,9 @@ async function getOneDelivery(req, res) {
     const { id: userId } = req.user;
     const { id: deliveryId } = req.params;
 
+    // prettier-ignore
     const [delivery] = await sequelize.query(
-      `
-    SELECT
-      d.id,
-      u.email,
-      s.nombre AS estado,
-      pm.nombre AS tipo_pago,
-      d.fecha_hora
-    FROM
-      deliveries AS d
-    JOIN statuses AS s ON
-      d.estado_id = s.id
-    JOIN payment_methods AS pm ON
-      d.pago_id = pm.id
-    JOIN users AS u ON
-      d.usuario_id = u.id
-    WHERE u.id = ${userId} AND d.id=${deliveryId}`,
+      `SELECT d.id, u.email, s.nombre AS estado, pm.nombre AS tipo_pago, d.fecha_hora FROM deliveries AS d JOIN statuses AS s ON d.estado_id = s.id JOIN payment_methods AS pm ON d.pago_id = pm.id JOIN users AS u ON d.usuario_id = u.id WHERE u.id = ${userId} AND d.id=${deliveryId}`,
       { type: QueryTypes.SELECT }
     );
 
@@ -187,17 +144,7 @@ async function getOneDelivery(req, res) {
 
 async function getDeliveryProducts(delivery, deliveryId) {
   const products = await sequelize.query(
-    `
-    SELECT
-      p.nombre,
-      p.precio,
-      o.cantidad,
-      (o.cantidad * p.precio) AS total
-    FROM
-      orders AS o
-    JOIN products AS p ON
-      o.producto_id = p.id
-    WHERE o.pedido_id = ${deliveryId};`,
+    `SELECT p.nombre, p.precio, o.cantidad, (o.cantidad * p.precio) AS total FROM orders AS o JOIN products AS p ON o.producto_id = p.id WHERE o.orden_id = ${deliveryId};`,
     { type: QueryTypes.SELECT }
   );
 
@@ -207,18 +154,9 @@ async function getDeliveryProducts(delivery, deliveryId) {
 async function getDeliveryTotal(delivery, deliveryId) {
   delivery.total = 0;
 
+  // prettier-ignore
   const [{ total }] = await sequelize.query(
-    `
-  SELECT
-	  SUM(o.cantidad * p.precio) AS total
-  FROM
-	  orders AS o
-  JOIN products AS p ON
-	  p.id = o.producto_id
-  WHERE
-	  o.pedido_id = ${deliveryId}
-  GROUP BY
-	  o.pedido_id;`,
+    `SELECT SUM(o.cantidad * p.precio) AS total FROM orders AS o JOIN products AS p ON p.id = o.producto_id WHERE o.orden_id = ${deliveryId} GROUP BY o.orden_id;`,
     { type: QueryTypes.SELECT }
   );
 
@@ -249,24 +187,9 @@ async function updateDelivery(req, res) {
     if (result.affectedRows === 0)
       return res.status(409).json({ message: 'Nada que actualizar.' });
 
+    // prettier-ignore
     const [product] = await sequelize.query(
-      `
-    SELECT
-      d.id,
-      u.email,
-      s.nombre AS estado,
-      pm.nombre AS tipo_pago,
-      d.fecha_hora
-    FROM
-      deliveries AS d
-    JOIN statuses AS s ON
-      d.estado_id = s.id
-    JOIN payment_methods AS pm ON
-      d.pago_id = pm.id
-    JOIN users AS u ON
-      d.usuario_id = u.id
-    WHERE
-      d.id = ${id}`,
+      `SELECT d.id, u.email, s.nombre AS estado, pm.nombre AS tipo_pago, d.fecha_hora FROM deliveries AS d JOIN statuses AS s ON d.estado_id = s.id JOIN payment_methods AS pm ON d.pago_id = pm.id JOIN users AS u ON d.usuario_id = u.id WHERE d.id = ${id}`,
       { type: QueryTypes.SELECT }
     );
 

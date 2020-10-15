@@ -114,15 +114,25 @@ async function deleteProduct(req, res) {
     return res.status(400).json({ errors: errors.array() });
 
   try {
-    const { id } = req.params;
-    const [results] = await sequelize.query(
-      `DELETE FROM products WHERE id=${id}`
+    const { id: productId } = req.params;
+
+    // prettier-ignore
+    const [productExists] = await sequelize.query(
+      `SELECT id, nombre, precio FROM products WHERE id=${productId}`,
+      { type: QueryTypes.SELECT, model: Product, mapToModel: true }
     );
 
-    if (results.affectedRows === 0)
+    if (!productExists)
       return res.status(404).json({ error: 'Producto no encontrado.' });
 
-    return res.status(200).json({ message: 'Producto eliminado.' });
+    const [results] = await sequelize.query(
+      `DELETE FROM products WHERE id=${productId}`
+    );
+
+    if (results.affectedRows !== 0)
+      return res.status(200).json({ message: 'Producto eliminado.' });
+
+    throw new Error('Something went wrong.');
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: SERVER_ERROR_MSG });

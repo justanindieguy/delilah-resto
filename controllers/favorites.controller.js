@@ -31,7 +31,7 @@ async function addFavorite(req, res) {
 
   try {
     const { id: userId } = req.user;
-    const { productId } = req.body;
+    const { productoId: productId } = req.body;
 
     // prettier-ignore
     const [productExists] = await sequelize.query(
@@ -74,7 +74,7 @@ async function removeFavorite(req, res) {
 
   try {
     const { id: userId } = req.user;
-    const { productId } = req.body;
+    const { productoId: productId } = req.body;
 
     // prettier-ignore
     const [favoriteExists] = await sequelize.query(
@@ -86,12 +86,21 @@ async function removeFavorite(req, res) {
       return res
         .status(404)
         .json({ error: 'Este producto no está en tus favoritos.' });
+
+    const [results] = await sequelize.query(
+      `DELETE FROM favorites WHERE usuario_id=${userId} AND producto_id=${productId}`
+    );
+
+    if (results.affectedRows !== 0)
+      return res
+        .status(200)
+        .json({ message: 'Producto eliminado de favoritos.' });
+
+    throw new Error('Something went wrong.');
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: SERVER_ERROR_MSG });
   }
-
-  res.send('Hello, World!');
 }
 
 module.exports = { getFavorites, addFavorite, removeFavorite };

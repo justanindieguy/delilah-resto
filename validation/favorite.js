@@ -2,7 +2,7 @@ const { ONLY_INT_MSG } = require('../utils/messages');
 const { body } = require('express-validator');
 
 const reqBody = [
-  body('productId')
+  body('productoId')
     .isInt()
     .withMessage(ONLY_INT_MSG)
     .not()

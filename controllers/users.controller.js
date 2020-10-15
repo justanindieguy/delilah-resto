@@ -83,14 +83,7 @@ async function registerUser(req, res) {
 async function getUsers(req, res) {
   try {
     const users = await sequelize.query(
-      `SELECT
-        id,
-        CONCAT(nombre, " ", apellido_p, " ", apellido_m) AS nombre,
-        telefono,
-        email,
-        direccion 
-      FROM
-        users;`,
+      `SELECT id, CONCAT(nombre, " ", apellido_p, " ", apellido_m) AS nombre, telefono, email, direccion FROM users;`,
       { type: QueryTypes.SELECT, model: User, mapToModel: true }
     );
 
