@@ -178,11 +178,10 @@ async function updateDelivery(req, res) {
 
   try {
     const { id } = req.params;
-    const updateParams = { estado_id: body.estado_id, pago_id: body.pago_id };
-    const setSentences = getUpdateSentences(updateParams);
+    const { estado_id } = body;
 
     const [result] = await sequelize.query(
-      `UPDATE deliveries SET ${setSentences.join(', ')} WHERE id=${id}`
+      `UPDATE deliveries SET estado_id=${estado_id} WHERE id=${id}`
     );
 
     if (result.affectedRows === 0)

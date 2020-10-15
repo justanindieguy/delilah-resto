@@ -31,7 +31,7 @@ async function addFavorite(req, res) {
 
   try {
     const { id: userId } = req.user;
-    const { productoId: productId } = req.body;
+    const { producto_id: productId } = req.body;
 
     // prettier-ignore
     const [productExists] = await sequelize.query(
@@ -74,7 +74,7 @@ async function removeFavorite(req, res) {
 
   try {
     const { id: userId } = req.user;
-    const { productoId: productId } = req.body;
+    const { producto_id: productId } = req.body;
 
     // prettier-ignore
     const [favoriteExists] = await sequelize.query(

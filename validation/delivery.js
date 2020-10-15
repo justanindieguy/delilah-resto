@@ -34,9 +34,6 @@ const updateDelivery = [
   body('estado_id', 'Sólo se aceptan números enteros dentro del rango 1-4.')
     .isInt({ min: 1, max: 4 })
     .optional(),
-  body('pago_id', 'Sólo se aceptan números enteros dentro del rango 1-3.')
-    .isInt({ min: 1, max: 4 })
-    .optional(),
 ];
 
 module.exports = { createDelivery, updateDelivery };
