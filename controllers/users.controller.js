@@ -172,16 +172,9 @@ async function updateUser(req, res) {
 
 async function selectUser(userId) {
   try {
+    // prettier-ignore
     const [user] = await sequelize.query(
-      `
-      SELECT
-        CONCAT(nombre, " ", apellido_p, " ", apellido_m) AS nombre,
-        direccion,
-        telefono,
-        email
-      FROM
-        users
-      WHERE id=${userId}`,
+      `SELECT CONCAT(nombre, " ", apellido_p, " ", apellido_m) AS nombre, direccion, telefono, email FROM users WHERE id=${userId}`,
       { type: QueryTypes.SELECT, model: User, mapToModel: true }
     );
 

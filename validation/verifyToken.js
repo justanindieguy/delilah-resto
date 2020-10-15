@@ -17,7 +17,7 @@ function verifyToken(req, res, next) {
 
 function checkIfIsAdmin(req, res, next) {
   // rol = 1 is for normal user.
-  // rol = 2 is for administrador.
+  // rol = 2 is for administrator.
 
   const { rol } = req.user;
 

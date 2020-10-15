@@ -1,4 +1,4 @@
-const { ONLY_INT_MSG, ONLY_FLOAT_MSG } = require('../utils/messages');
+const { ONLY_FLOAT_MSG } = require('../utils/messages');
 const { body } = require('express-validator');
 
 const newProduct = [
