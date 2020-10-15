@@ -35,18 +35,19 @@ async function createDelivery(req, res) {
       const { producto_id, cantidad } = order;
 
       await sequelize.query(
-        `INSERT INTO orders(orden_id, producto_id, cantidad) VALUES (${deliveryId}, ${producto_id}, ${cantidad})`
+        `INSERT INTO orders(pedido_id, producto_id, cantidad) VALUES (${deliveryId}, ${producto_id}, ${cantidad})`
       );
     });
 
     // Fetch the recently created data from the database and send it in the res.
-    const delivery = await sequelize.query(
+    // prettier-ignore
+    const [delivery] = await sequelize.query(
       `SELECT id, usuario_id, estado_id, pago_id, fecha_hora FROM deliveries WHERE id=${deliveryId}`,
       { type: QueryTypes.SELECT, model: Delivery, mapToModel: true }
     );
 
     const orders = await sequelize.query(
-      `SELECT producto_id, cantidad FROM orders WHERE orden_id=${deliveryId}`,
+      `SELECT producto_id, cantidad FROM orders WHERE pedido_id=${deliveryId}`,
       { type: QueryTypes.SELECT, model: Order, mapToModel: true }
     );
 
@@ -144,7 +145,7 @@ async function getOneDelivery(req, res) {
 
 async function getDeliveryProducts(delivery, deliveryId) {
   const products = await sequelize.query(
-    `SELECT p.nombre, p.precio, o.cantidad, (o.cantidad * p.precio) AS total FROM orders AS o JOIN products AS p ON o.producto_id = p.id WHERE o.orden_id = ${deliveryId};`,
+    `SELECT p.nombre, p.precio, o.cantidad, (o.cantidad * p.precio) AS total FROM orders AS o JOIN products AS p ON o.producto_id = p.id WHERE o.pedido_id = ${deliveryId};`,
     { type: QueryTypes.SELECT }
   );
 
@@ -156,7 +157,7 @@ async function getDeliveryTotal(delivery, deliveryId) {
 
   // prettier-ignore
   const [{ total }] = await sequelize.query(
-    `SELECT SUM(o.cantidad * p.precio) AS total FROM orders AS o JOIN products AS p ON p.id = o.producto_id WHERE o.orden_id = ${deliveryId} GROUP BY o.orden_id;`,
+    `SELECT SUM(o.cantidad * p.precio) AS total FROM orders AS o JOIN products AS p ON p.id = o.producto_id WHERE o.pedido_id = ${deliveryId} GROUP BY o.pedido_id;`,
     { type: QueryTypes.SELECT }
   );
 

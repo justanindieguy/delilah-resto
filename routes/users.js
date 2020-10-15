@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const validator = require('../validation/user');
+const loginValidator = require('../validation/login');
 const token = require('../validation/verifyToken');
 const controller = require('../controllers/users.controller');
 
@@ -16,5 +17,7 @@ router.patch(
   token.verifyToken,
   controller.updateUser
 );
+
+router.post('/login', loginValidator, controller.login);
 
 module.exports = router;
