@@ -191,7 +191,7 @@ async function login(req, res) {
 
     // Checking if email exists.
     const [user] = await sequelize.query(
-      `SELECT id, email, pass, rol_id FROM users WHERE email="${email}"`,
+      `SELECT u.id, u.email, u.pass, r.nombre AS loggedInAs FROM users AS u JOIN roles AS r ON u.rol_id = r.id WHERE email="${email}"`,
       {
         type: QueryTypes.SELECT,
       }
@@ -215,7 +215,7 @@ async function login(req, res) {
       {
         id: user.id,
         email: user.email,
-        rol: user.rol_id,
+        loggedInAs: user.loggedInAs,
       },
       TOKEN_SECRET
     );

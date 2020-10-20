@@ -18,7 +18,7 @@ tags:
   - name: 'pedidos'
     description: 'Operaciones de pedidos'
   - name: 'favoritos'
-    description: 'Productos añadidos a favoritos de un usuario.'
+    description: 'Operaciones de productos añadidos a favoritos de un usuario.'
 schemes:
   - 'https'
   - 'http'
@@ -45,7 +45,21 @@ paths:
           schema:
             type: 'array'
             items:
-              $ref: '#/definitions/UsuarioResAdmin'
+              type: 'object'
+              properties:
+                id:
+                  type: 'integer'
+                nombre:
+                  type: 'string'
+                telefono:
+                  type: 'string'
+                  minLength: 10
+                  maxLength: 10
+                email:
+                  type: 'string'
+                  format: 'email'
+                direccion:
+                  type: 'string'
         401:
           description: 'Acceso denegado. No se ha proporcionado un JWT o no corresponde a un administrador.'
         500:
@@ -76,7 +90,19 @@ paths:
               message:
                 type: 'string'
               data:
-                $ref: '#/definitions/UsuarioRes'
+                type: 'object'
+                properties:
+                  nombre:
+                    type: 'string'
+                  direccion:
+                    type: 'string'
+                  telefono:
+                    type: 'string'
+                    minLength: 10
+                    maxLength: 10
+                  email:
+                    type: 'string'
+                    format: 'email'
         400:
           description: 'Algún campo no tiene el formato indicado.'
         409:
@@ -103,7 +129,19 @@ paths:
         200:
           description: 'Información del usuario que corresponde a la sesión actual.'
           schema:
-            $ref: '#/definitions/UsuarioRes'
+            type: 'object'
+            properties:
+              nombre:
+                type: 'string'
+              direccion:
+                type: 'string'
+              telefono:
+                type: 'string'
+                minLength: 10
+                maxLength: 10
+              email:
+                type: 'string'
+                format: 'email'
         404:
           description: 'Usuario no encontrado.'
         409:
@@ -142,7 +180,19 @@ paths:
               message:
                 type: 'string'
               data:
-                $ref: '#/definitions/UsuarioRes'
+                type: 'object'
+                properties:
+                  nombre:
+                    type: 'string'
+                  direccion:
+                    type: 'string'
+                  telefono:
+                    type: 'string'
+                    minLength: 10
+                    maxLength: 10
+                  email:
+                    type: 'string'
+                    format: 'email'
         400:
           description: 'Request inválido. No se enviaron campos o no corresponden al formato.'
         401:
@@ -208,7 +258,15 @@ paths:
           schema:
             type: 'array'
             items:
-              $ref: '#/definitions/ProductoRes'
+              type: 'object'
+              properties:
+                id:
+                  type: 'integer'
+                nombre:
+                  type: 'string'
+                precio:
+                  type: 'number'
+                  format: 'float'
     post:
       tags:
         - productos
@@ -239,7 +297,15 @@ paths:
               message:
                 type: 'string'
               data:
-                $ref: '#/definitions/ProductoRes'
+                type: 'object'
+                properties:
+                  id:
+                    type: 'integer'
+                  nombre:
+                    type: 'string'
+                  precio:
+                    type: 'number'
+                    format: 'float'
         400:
           description: 'Request inválida.'
         500:
@@ -263,7 +329,15 @@ paths:
         200:
           description: 'Información del producto.'
           schema:
-            $ref: '#/definitions/ProductoRes'
+            type: 'object'
+            properties:
+              id:
+                type: 'integer'
+              nombre:
+                type: 'string'
+              precio:
+                type: 'number'
+                format: 'float'
         404:
           description: 'Producto no encontrado.'
     patch:
@@ -303,7 +377,15 @@ paths:
               message:
                 type: 'string'
               data:
-                $ref: '#/definitions/ProductoRes'
+                type: 'object'
+                properties:
+                  id:
+                    type: 'integer'
+                  nombre:
+                    type: 'string'
+                  precio:
+                    type: 'number'
+                    format: 'float'
         400:
           description: 'Request inválido.'
         409:
@@ -393,7 +475,16 @@ paths:
           name: body
           required: true
           schema:
-            $ref: '#/definitions/PedidoPost'
+            type: 'object'
+            properties:
+              pago_id:
+                type: 'integer'
+                minimum: 1
+                maximum: 3
+              ordenes:
+                type: 'array'
+                items:
+                  $ref: '#/definitions/Orden'
       responses:
         200:
           description: 'Pedido creado. Información del pedido recién creado.'
@@ -402,12 +493,32 @@ paths:
             properties:
               message:
                 type: 'string'
-              pedido:
-                $ref: '#/definitions/PedidoRes'
-              ordenes:
-                type: 'array'
-                items:
-                  $ref: '#/definitions/Orden'
+              data:
+                type: 'object'
+                properties:
+                  pedido:
+                    type: 'object'
+                    properties:
+                      id:
+                        type: 'integer'
+                      usuario:
+                        type: 'string'
+                      estado:
+                        type: 'string'
+                      metodo_pago:
+                        type: 'string'
+                      fecha_hora:
+                        type: 'string'
+                        format: 'date-time'
+                  ordenes:
+                    type: 'array'
+                    items:
+                      type: 'object'
+                      properties:
+                        producto:
+                          type: 'string'
+                        cantidad:
+                          type: 'integer'
         400:
           description: 'Request inválido. Es probable que algún campo no tenga el formato correcto.'
         404:
@@ -607,7 +718,7 @@ paths:
           description: 'El producto que se quiere añadir a favoritos no existe.'
         500:
           description: 'Error interno.'
-  /favorites/{id}:
+  /favorites/{productoId}:
     delete:
       tags:
         - favoritos
@@ -624,19 +735,10 @@ paths:
           description: 'JWT de administrador o usuario.'
           required: true
         - in: path
-          name: id
+          name: productoId
           description: 'ID del producto que se desea eliminar de favoritos.'
           required: true
           type: integer
-        - in: body
-          name: body
-          description: 'ID del producto que se desea eliminar de favoritos.'
-          required: true
-          schema:
-            type: 'object'
-            properties:
-              producto_id:
-                type: 'integer'
       responses:
         200:
           description: 'Producto eliminado de favoritos.'
@@ -674,65 +776,12 @@ definitions:
         type: 'string'
         minLength: 6
         maxLength: 15
-  UsuarioRes:
-    type: 'object'
-    properties:
-      nombre:
-        type: 'string'
-      direccion:
-        type: 'string'
-      telefono:
-        type: 'string'
-        minLength: 10
-        maxLength: 10
-      email:
-        type: 'string'
-        format: 'email'
-  UsuarioResAdmin:
-    type: 'object'
-    properties:
-      id:
-        type: 'integer'
-      nombre:
-        type: 'string'
-      telefono:
-        type: 'string'
-        minLength: 10
-        maxLength: 10
-      email:
-        type: 'string'
-        format: 'email'
-      direccion:
-        type: 'string'
   Producto:
     type: 'object'
     properties:
       nombre:
         type: 'string'
       precio:
-        type: 'number'
-        format: 'float'
-  ProductoRes:
-    type: 'object'
-    properties:
-      id:
-        type: 'integer'
-      nombre:
-        type: 'string'
-      precio:
-        type: 'number'
-        format: 'float'
-  ProductoPedido:
-    type: 'object'
-    properties:
-      nombre:
-        type: 'string'
-      precio:
-        type: 'number'
-        format: 'float'
-      cantidad:
-        type: 'integer'
-      total:
         type: 'number'
         format: 'float'
   Orden:
@@ -763,32 +812,18 @@ definitions:
       productos:
         type: 'array'
         items:
-          $ref: '#/definitions/ProductoPedido'
-  PedidoPost:
-    type: 'object'
-    properties:
-      pago_id:
-        type: 'integer'
-        minimum: 1
-        maximum: 3
-      ordenes:
-        type: 'array'
-        items:
-          $ref: '#/definitions/Orden'
-  PedidoRes:
-    type: 'object'
-    properties:
-      id:
-        type: 'integer'
-      usuario_id:
-        type: 'integer'
-      estado_id:
-        type: 'integer'
-      pago_id:
-        type: 'integer'
-      fecha_hora:
-        type: 'string'
-        format: 'date-time'
+          type: 'object'
+          properties:
+            nombre:
+              type: 'string'
+            precio:
+              type: 'number'
+              format: 'float'
+            cantidad:
+              type: 'integer'
+            total:
+              type: 'number'
+              format: 'float'
   Favorito:
     type: 'object'
     properties:

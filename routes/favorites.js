@@ -6,11 +6,16 @@ const token = require('../validation/verifyToken');
 
 router.get('/', token.verifyToken, controller.getFavorites);
 
-router.post('/', validator.reqBody, token.verifyToken, controller.addFavorite);
+router.post(
+  '/',
+  validator.addToFavorites,
+  token.verifyToken,
+  controller.addFavorite
+);
 
 router.delete(
-  '/',
-  validator.reqBody,
+  '/:productId',
+  validator.removeFromFavorites,
   token.verifyToken,
   controller.removeFavorite
 );

@@ -1,7 +1,7 @@
 const { ONLY_INT_MSG } = require('../utils/messages');
-const { body } = require('express-validator');
+const { param, body } = require('express-validator');
 
-const reqBody = [
+const addToFavorites = [
   body('producto_id')
     .isInt()
     .withMessage(ONLY_INT_MSG)
@@ -10,4 +10,6 @@ const reqBody = [
     .withMessage('El ID del producto es obligatorio.'),
 ];
 
-module.exports = { reqBody };
+const removeFromFavorites = [param('productId', ONLY_INT_MSG).isInt()];
+
+module.exports = { addToFavorites, removeFromFavorites };

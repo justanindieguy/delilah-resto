@@ -74,7 +74,7 @@ async function removeFavorite(req, res) {
 
   try {
     const { id: userId } = req.user;
-    const { producto_id: productId } = req.body;
+    const { productId } = req.params;
 
     // prettier-ignore
     const [favoriteExists] = await sequelize.query(

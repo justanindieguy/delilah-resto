@@ -1,11 +1,22 @@
 const { QueryTypes } = require('sequelize');
 const { validationResult } = require('express-validator');
 const { SERVER_ERROR_MSG } = require('../utils/messages');
-const { getUpdateSentences } = require('../utils/utils');
 const verifyProducts = require('../validation/verifyProducts');
 const sequelize = require('../database/database');
 const Delivery = require('../models/Delivery');
 const Order = require('../models/Order');
+
+// Returns a string with the format: (1, 1, 2), (1, 2, 3)
+function getOrderRows(deliveryId, orders) {
+  const insertRows = [];
+
+  orders.forEach((order) => {
+    const { producto_id, cantidad } = order;
+    insertRows.push(`(${deliveryId}, ${producto_id}, ${cantidad})`);
+  });
+
+  return insertRows.join(', ');
+}
 
 async function createDelivery(req, res) {
   const errors = validationResult(req);
@@ -28,26 +39,24 @@ async function createDelivery(req, res) {
       `INSERT INTO deliveries (usuario_id, pago_id) VALUES (${userId}, ${pago_id})`
     );
 
-    /* For each product I create a new order according to the quantity,
-     * deliveryId and productId.
-     */
-    ordenes.forEach(async (order) => {
-      const { producto_id, cantidad } = order;
-
-      await sequelize.query(
-        `INSERT INTO orders(pedido_id, producto_id, cantidad) VALUES (${deliveryId}, ${producto_id}, ${cantidad})`
-      );
-    });
+    // Associates all the orders with the delivery id.
+    await sequelize.query(
+      `INSERT INTO orders(pedido_id, producto_id, cantidad) VALUES ${getOrderRows(
+        deliveryId,
+        ordenes
+      )}`
+    );
 
     // Fetch the recently created data from the database and send it in the res.
+
     // prettier-ignore
     const [delivery] = await sequelize.query(
-      `SELECT id, usuario_id, estado_id, pago_id, fecha_hora FROM deliveries WHERE id=${deliveryId}`,
+      `SELECT d.id, u.email AS usuario, s.nombre AS estado, pm.nombre AS metodo_pago, d.fecha_hora FROM deliveries AS d INNER JOIN users AS u ON d.usuario_id = u.id INNER JOIN statuses AS s ON d.estado_id = s.id INNER JOIN payment_methods AS pm ON d.pago_id = pm.id WHERE d.id=${deliveryId}`,
       { type: QueryTypes.SELECT, model: Delivery, mapToModel: true }
     );
 
     const orders = await sequelize.query(
-      `SELECT producto_id, cantidad FROM orders WHERE pedido_id=${deliveryId}`,
+      `SELECT p.nombre AS producto, o.cantidad FROM orders AS o INNER JOIN products AS p ON o.producto_id = p.id WHERE o.pedido_id=${deliveryId}`,
       { type: QueryTypes.SELECT, model: Order, mapToModel: true }
     );
 
@@ -127,7 +136,7 @@ async function getOneDelivery(req, res) {
       { type: QueryTypes.SELECT }
     );
 
-    if (delivery.length === 0)
+    if (!delivery)
       return res.status(404).json({
         error:
           'No hay ningún pedido con el ID indicado asociado a este usuario.',
