@@ -167,10 +167,30 @@ paths:
           required: true
         - in: body
           name: 'body'
-          description: 'Objeto con los campos que se desean actualizar.'
+          description: 'Objeto con los campos que se desean actualizar. Se requiere enviar por lo menos un campo.'
           required: true
           schema:
-            $ref: '#/definitions/Usuario'
+            type: 'object'
+            properties:
+              nombre:
+                type: 'string'
+              apellido_p:
+                type: 'string'
+              apellido_m:
+                type: 'string'
+              telefono:
+                type: 'string'
+                minLength: 10
+                maxLength: 10
+              direccion:
+                type: 'string'
+              email:
+                type: 'string'
+                format: 'email'
+              pass:
+                type: 'string'
+                minLength: 6
+                maxLength: 15
       responses:
         200:
           description: 'Usuario actualizado.'
@@ -364,7 +384,7 @@ paths:
           type: integer
         - in: body
           name: body
-          description: 'Campos del objeto producto que se desean actualizar.'
+          description: 'Objeto producto con los campos que se desean actualizar. Se requiere enviar por lo menos un campo.'
           required: true
           schema:
             $ref: '#/definitions/Producto'
@@ -756,6 +776,13 @@ paths:
 definitions:
   Usuario:
     type: 'object'
+    required:
+      - nombre
+      - apellido_p
+      - apellido_m
+      - direccion
+      - email
+      - pass
     properties:
       nombre:
         type: 'string'

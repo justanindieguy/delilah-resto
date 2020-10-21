@@ -14,9 +14,19 @@ API Rest para restaurante.
    - En `TOKEN_SECRET=` se pasará la firma para la generación de tokens. Una vez fijada no deberá modificarse. Por defecto se proporciona la siguiente: `;KE>7C12d>0$"Su`.
 4. Se puede ejecutar el servidor de dos maneras: por medio del comando `npm run dev` el cual lo ejecuta en un ambiente para desarrollador por medio de nodemon; así como también por medio del comando `npm start` que lo ejecuta directamente sobre Node.JS. Es recomendable ejecutar por medio de `npm start` en caso de que no se vayan a realizar cambios a los archivos.
 5. Con la base de datos creada, el servidor ejecutandose y el archivo .env configurado, lo siguiente es crear el primer usuario. Es importante crearlo por medio del endpoint `/api/v1/users` usando el método POST. Esto se debe a que al crear un nuevo usuario la contraseña es encriptada, por lo que si se crea directamente desde el SGBD no podrá iniciarse sesión posteriormente.
-   - Para crear un usuario se requiere pasar por medio de `req.body` un JSON con la siguiente información: `{ "nombre": string, apellido_p: string, apellido_m: string, "email": string, "pass": string, "direccion: "string" }`
+   - Para crear un usuario se requiere pasar por medio de `req.body` un JSON con la siguiente información:
+     ```
+     {
+        "nombre": string,
+        "apellido_p": string,
+        "apellido_m": string,
+        "email": string,
+        "pass": string,
+        "direccion: "string"
+     }
+     ```
    - Para más información respecto al formato de cada uno de los campos se proporciona la especificación de la API dentro del archivo `API_Specification.yaml`, este archivo se encuentra en la raíz y puede consultarse por medio de Swagger Editor.
-6. Una vez creado el usuario deberá ejecutarse la siguiente sentencia de SQL: `UPDATE users SET rol_id = 2 WHERE id = 1`; esto dará privilegios de administrador al usuario, dándole acceso a los endpoints reservados para administrador.
+6. Una vez creado el usuario deberá ejecutarse la siguiente sentencia de SQL: `UPDATE users SET rol_id = 2 WHERE id = 1`; esto dará privilegios de administrador al usuario, dándole acceso a los endpoints reservados para administrador. Esta sentencia puede encontrarse dentro del archivo `setAdmin.sql` dentro de la carpeta `./sql`.
 
 ## Recursos.
 
@@ -34,3 +44,7 @@ API Rest para restaurante.
 - En la carpeta `validation` se definen las validaciones necesarias, de esta manera se corrobora que se está mandando la información necesaria y con el formato indicado a cada uno de los endpoints.
 - El archivo `app.js` configura el servidor de express especificando cada una de las rutas, así como también el middleware de body-parser.
 - El archivo `index.js` ejecuta el servidor.
+
+## Modelo relacional de la Base de Datos
+
+![Modelo relacional](./sql/diagrams/relational-model.png)
