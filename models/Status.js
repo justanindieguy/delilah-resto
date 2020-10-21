@@ -1,9 +1,9 @@
 const Sequelize = require('sequelize');
 const sequelize = require('../database/database');
-const Order = require('./Order');
+const Shipping = require('./Shipping');
 
-const Product = sequelize.define(
-  'product',
+const Status = sequelize.define(
+  'status',
   {
     id: {
       type: Sequelize.INTEGER,
@@ -14,16 +14,12 @@ const Product = sequelize.define(
       type: Sequelize.STRING,
       allowNull: false,
     },
-    precio: {
-      type: Sequelize.FLOAT(10, 2),
-      allowNull: false,
-    },
   },
   {
     timestamps: false,
   }
 );
 
-Product.hasMany(Order, { foreignKey: 'pedido_id', sourceKey: 'id' });
+Status.hasMany(Shipping, { foreignKey: 'estado_id', sourceKey: 'id' });
 
-module.exports = Product;
+module.exports = Status;

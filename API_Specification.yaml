@@ -1,0 +1,866 @@
+swagger: '2.0'
+info:
+  title: 'Delilah Restó'
+  description: 'Una API que permite obtener, modificar y añadir información al sistema de pedidos de la aplicación Delilah Restó. Los clientes pueden registrarse en la plataforma, ver el listado de productos y realizar pedidos. Los administradores del sitio pueden consultar toda la información de los pedidos y actualizar su estado.'
+  version: '1.0.0'
+  contact:
+    email: 'calcetin.izquierdo@gmail.com'
+  license:
+    name: 'MIT License'
+    url: 'https://opensource.org/licenses/MIT'
+host: 'localhost:3000'
+basePath: '/api/v1'
+tags:
+  - name: 'usuarios'
+    description: 'Operaciones de usuarios.'
+  - name: 'productos'
+    description: 'Operaciones de productos.'
+  - name: 'pedidos'
+    description: 'Operaciones de pedidos'
+  - name: 'favoritos'
+    description: 'Operaciones de productos añadidos a favoritos de un usuario.'
+schemes:
+  - 'https'
+  - 'http'
+paths:
+  /users:
+    get:
+      tags:
+        - 'usuarios'
+      summary: 'Obtiene la información de todos los usuarios registrados.'
+      description: ''
+      operationId: 'getUsers'
+      produces:
+        - 'application/json'
+      parameters:
+        - in: header
+          name: 'auth-token'
+          description: 'JWT válido de administrador que se genera al iniciar sesión.'
+          type: 'string'
+          format: 'jwt'
+          required: true
+      responses:
+        200:
+          description: 'Arreglo de usuarios.'
+          schema:
+            type: 'array'
+            items:
+              type: 'object'
+              properties:
+                id:
+                  type: 'integer'
+                nombre:
+                  type: 'string'
+                telefono:
+                  type: 'string'
+                  minLength: 10
+                  maxLength: 10
+                email:
+                  type: 'string'
+                  format: 'email'
+                direccion:
+                  type: 'string'
+        401:
+          description: 'Acceso denegado. No se ha proporcionado un JWT o no corresponde a un administrador.'
+        500:
+          description: 'Error interno.'
+    post:
+      tags:
+        - 'usuarios'
+      summary: 'Registra un nuevo usuario.'
+      description: ''
+      operationId: 'addUser'
+      consumes:
+        - 'application/json'
+      produces:
+        - 'application/json'
+      parameters:
+        - in: 'body'
+          name: 'body'
+          description: 'Objeto de tipo usuario con toda la información requerida.'
+          required: true
+          schema:
+            $ref: '#/definitions/Usuario'
+      responses:
+        200:
+          description: 'Usuario creado exitosamente.'
+          schema:
+            type: 'object'
+            properties:
+              message:
+                type: 'string'
+              data:
+                type: 'object'
+                properties:
+                  nombre:
+                    type: 'string'
+                  direccion:
+                    type: 'string'
+                  telefono:
+                    type: 'string'
+                    minLength: 10
+                    maxLength: 10
+                  email:
+                    type: 'string'
+                    format: 'email'
+        400:
+          description: 'Algún campo no tiene el formato indicado.'
+        409:
+          description: 'El email o el teléfono ya está registrado.'
+        500:
+          description: 'Error interno.'
+  /users/myUser:
+    get:
+      tags:
+        - usuarios
+      summary: 'Obtiene la información del usuario de la sesión actual.'
+      description: ''
+      operationId: 'getUser'
+      produces:
+        - 'application/json'
+      parameters:
+        - in: header
+          name: 'auth-token'
+          type: 'string'
+          format: 'jwt'
+          description: 'JWT de usuario.'
+          required: true
+      responses:
+        200:
+          description: 'Información del usuario que corresponde a la sesión actual.'
+          schema:
+            type: 'object'
+            properties:
+              nombre:
+                type: 'string'
+              direccion:
+                type: 'string'
+              telefono:
+                type: 'string'
+                minLength: 10
+                maxLength: 10
+              email:
+                type: 'string'
+                format: 'email'
+        404:
+          description: 'Usuario no encontrado.'
+        409:
+          description: 'Acceso denegado. El token no es válido o no se ha proporcionado.'
+        500:
+          description: 'Error interno.'
+    patch:
+      tags:
+        - usuarios
+      summary: 'Actualiza la información del usuario de la sesión actual.'
+      description: ''
+      operationId: 'updateUser'
+      consumes:
+        - 'application/json'
+      produces:
+        - 'application/json'
+      parameters:
+        - in: header
+          name: 'auth-token'
+          type: 'string'
+          format: 'jwt'
+          description: 'JWT de usuario.'
+          required: true
+        - in: body
+          name: 'body'
+          description: 'Objeto con los campos que se desean actualizar. Se requiere enviar por lo menos un campo.'
+          required: true
+          schema:
+            type: 'object'
+            properties:
+              nombre:
+                type: 'string'
+              apellido_p:
+                type: 'string'
+              apellido_m:
+                type: 'string'
+              telefono:
+                type: 'string'
+                minLength: 10
+                maxLength: 10
+              direccion:
+                type: 'string'
+              email:
+                type: 'string'
+                format: 'email'
+              pass:
+                type: 'string'
+                minLength: 6
+                maxLength: 15
+      responses:
+        200:
+          description: 'Usuario actualizado.'
+          schema:
+            type: 'object'
+            properties:
+              message:
+                type: 'string'
+              data:
+                type: 'object'
+                properties:
+                  nombre:
+                    type: 'string'
+                  direccion:
+                    type: 'string'
+                  telefono:
+                    type: 'string'
+                    minLength: 10
+                    maxLength: 10
+                  email:
+                    type: 'string'
+                    format: 'email'
+        400:
+          description: 'Request inválido. No se enviaron campos o no corresponden al formato.'
+        401:
+          description: 'Acceso denegado. El token no es válido o no se ha proporcionado.'
+        409:
+          description: 'Nada que actualizar. Es probable que la información corresponda a la ya almacenada.'
+        500:
+          description: 'Error interno.'
+  /users/login:
+    post:
+      tags:
+        - usuarios
+      summary: 'Inicio de sesión. Retorna JWT.'
+      description: ''
+      operationId: 'login'
+      consumes:
+        - 'application/json'
+      produces:
+        - 'application/json'
+      parameters:
+        - in: body
+          name: 'body'
+          description: 'Credenciales de usuario.'
+          required: true
+          schema:
+            type: 'object'
+            properties:
+              email:
+                type: 'string'
+                format: 'email'
+              pass:
+                type: 'string'
+                minLength: 6
+                maxLength: 15
+      responses:
+        200:
+          description: OK
+          schema:
+            type: 'object'
+            properties:
+              message:
+                type: 'string'
+          headers:
+            auth-token:
+              description: 'JWT del usuario que ha iniciado sesión.'
+              type: 'string'
+        400:
+          description: 'Usuario o contraseña incorrectos.'
+        500:
+          description: 'Error interno.'
+  /products:
+    get:
+      tags:
+        - productos
+      summary: 'Obtiene la información de todos los productos.'
+      description: ''
+      operationId: 'getProducts'
+      produces:
+        - 'application/json'
+      responses:
+        200:
+          description: 'Arreglo de productos.'
+          schema:
+            type: 'array'
+            items:
+              type: 'object'
+              properties:
+                id:
+                  type: 'integer'
+                nombre:
+                  type: 'string'
+                precio:
+                  type: 'number'
+                  format: 'float'
+    post:
+      tags:
+        - productos
+      summary: 'Crea un nuevo producto.'
+      description: ''
+      operationId: 'createProduct'
+      consumes:
+        - 'application/json'
+      produces:
+        - 'application/json'
+      parameters:
+        - in: header
+          name: 'auth-token'
+          type: 'string'
+          format: 'jwt'
+          description: 'JWT de administrador.'
+          required: true
+        - in: body
+          name: 'body'
+          schema:
+            $ref: '#/definitions/Producto'
+      responses:
+        200:
+          description: 'Datos del producto recién creado.'
+          schema:
+            type: 'object'
+            properties:
+              message:
+                type: 'string'
+              data:
+                type: 'object'
+                properties:
+                  id:
+                    type: 'integer'
+                  nombre:
+                    type: 'string'
+                  precio:
+                    type: 'number'
+                    format: 'float'
+        400:
+          description: 'Request inválida.'
+        500:
+          description: 'Error interno.'
+  /products/{id}:
+    get:
+      tags:
+        - productos
+      summary: 'Obtiene la información del producto con el ID específicado.'
+      description: ''
+      operationId: 'getProduct'
+      produces:
+        - 'application/json'
+      parameters:
+        - in: path
+          name: id
+          description: 'ID del producto que se desea consultar.'
+          required: true
+          type: integer
+      responses:
+        200:
+          description: 'Información del producto.'
+          schema:
+            type: 'object'
+            properties:
+              id:
+                type: 'integer'
+              nombre:
+                type: 'string'
+              precio:
+                type: 'number'
+                format: 'float'
+        404:
+          description: 'Producto no encontrado.'
+    patch:
+      tags:
+        - productos
+      summary: 'Actualiza la información el producto con el ID específicado'
+      description: ''
+      operationId: 'updateProduct'
+      consumes:
+        - 'application/json'
+      produces:
+        - 'application/json'
+      parameters:
+        - in: header
+          name: 'auth-token'
+          type: 'string'
+          format: 'jwt'
+          description: 'JWT de administrador'
+          required: true
+        - in: path
+          name: id
+          description: 'ID del producto que se desea consultar.'
+          required: true
+          type: integer
+        - in: body
+          name: body
+          description: 'Objeto producto con los campos que se desean actualizar. Se requiere enviar por lo menos un campo.'
+          required: true
+          schema:
+            $ref: '#/definitions/Producto'
+      responses:
+        200:
+          description: 'Producto actualizado.'
+          schema:
+            type: 'object'
+            properties:
+              message:
+                type: 'string'
+              data:
+                type: 'object'
+                properties:
+                  id:
+                    type: 'integer'
+                  nombre:
+                    type: 'string'
+                  precio:
+                    type: 'number'
+                    format: 'float'
+        400:
+          description: 'Request inválido.'
+        409:
+          description: 'Nada que actualizar. Es posible que los datos sean iguales a los ya registrados.'
+        500:
+          description: 'Error interno.'
+    delete:
+      tags:
+        - productos
+      summary: 'Elimina el producto con el ID específicado.'
+      description: ''
+      operationId: 'deleteProduct'
+      produces:
+        - 'application/json'
+      parameters:
+        - in: header
+          name: 'auth-token'
+          type: 'string'
+          format: 'jwt'
+          description: 'JWT de administrador.'
+          required: true
+        - in: path
+          name: id
+          description: 'ID del producto que se desea eliminar.'
+          required: true
+          type: integer
+      responses:
+        200:
+          description: 'Producto eliminado'
+          schema:
+            type: 'object'
+            properties:
+              message:
+                type: 'string'
+        400:
+          description: 'Request inválido. Es posible que no se haya ingresado un entero en el path.'
+        404:
+          description: 'Producto no encontrado.'
+        500:
+          description: 'Error interno.'
+  /deliveries:
+    get:
+      tags:
+        - pedidos
+      summary: 'Obtiene la información de todos los pedidos.'
+      description: ''
+      operationId: 'getAllDeliveries'
+      produces:
+        - 'application/json'
+      parameters:
+        - in: header
+          name: 'auth-token'
+          type: 'string'
+          format: 'jwt'
+          description: 'JWT de administrador.'
+          required: true
+      responses:
+        200:
+          description: 'Arreglo con todos los pedidos realizados de todos los usuarios.'
+          schema:
+            type: 'array'
+            items:
+              $ref: '#/definitions/Pedido'
+        401:
+          description: 'Acceso denegado. Es probable que aún no se haya iniciado sesión o el token no corresponda a un administrador.'
+        404:
+          description: 'No se encontraron pedidos. Aún no hay pedidos.'
+        500:
+          description: 'Error interno.'
+    post:
+      tags:
+        - pedidos
+      summary: 'Crea un pedido asociado a la sesión actual.'
+      description: ''
+      consumes:
+        - 'application/json'
+      produces:
+        - 'application/json'
+      parameters:
+        - in: header
+          name: 'auth-token'
+          type: 'string'
+          format: 'jwt'
+          description: 'JWT de usuario o administrador.'
+          required: true
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: 'object'
+            properties:
+              pago_id:
+                type: 'integer'
+                minimum: 1
+                maximum: 3
+              ordenes:
+                type: 'array'
+                items:
+                  $ref: '#/definitions/Orden'
+      responses:
+        200:
+          description: 'Pedido creado. Información del pedido recién creado.'
+          schema:
+            type: 'object'
+            properties:
+              message:
+                type: 'string'
+              data:
+                type: 'object'
+                properties:
+                  pedido:
+                    type: 'object'
+                    properties:
+                      id:
+                        type: 'integer'
+                      usuario:
+                        type: 'string'
+                      estado:
+                        type: 'string'
+                      metodo_pago:
+                        type: 'string'
+                      fecha_hora:
+                        type: 'string'
+                        format: 'date-time'
+                  ordenes:
+                    type: 'array'
+                    items:
+                      type: 'object'
+                      properties:
+                        producto:
+                          type: 'string'
+                        cantidad:
+                          type: 'integer'
+        400:
+          description: 'Request inválido. Es probable que algún campo no tenga el formato correcto.'
+        404:
+          description: 'Producto no encontrado. Un producto que se intentaba asociar a un pedido no existe.'
+        500:
+          description: 'Error interno.'
+  /deliveries/myDeliveries:
+    get:
+      tags:
+        - pedidos
+      summary: 'Obtiene todos los pedidos asociados con la sesión actual.'
+      description: ''
+      produces:
+        - 'application/json'
+      parameters:
+        - in: header
+          name: 'auth-token'
+          type: 'string'
+          format: 'jwt'
+          description: 'JWT de usuario o administrador'
+          required: true
+      responses:
+        200:
+          description: 'Arreglo de pedidos asociados al usuario de la sesión actual.'
+          schema:
+            type: 'array'
+            items:
+              $ref: '#/definitions/Pedido'
+        401:
+          description: 'Acceso denegado. Es probable que aún no se haya iniciado sesión.'
+        404:
+          description: 'Aún no hay pedidos asociados con la sesión actual.'
+        500:
+          description: 'Error interno.'
+  /deliveries/{id}:
+    get:
+      tags:
+        - pedidos
+      summary: 'Obtiene la información del pedido con el ID específicado siempre y cuando éste asociado a la sesión actual.'
+      description: ''
+      operationId: 'getDelivery'
+      produces:
+        - 'application/json'
+      parameters:
+        - in: header
+          name: 'auth-token'
+          type: 'string'
+          format: 'jwt'
+          description: 'JWT de usuario.'
+          required: true
+        - in: path
+          name: id
+          description: 'ID del pedido que se desea consultar.'
+          required: true
+          type: integer
+      responses:
+        200:
+          description: 'Información del pedido y sus productos asociados.'
+          schema:
+            $ref: '#/definitions/Pedido'
+        400:
+          description: 'Request inválido.'
+        401:
+          description: 'Acceso denegado. Es probable que aún no se haya iniciado sesión.'
+        404:
+          description: 'Pedido no encontrado. Es probable que el pedido exista pero no esté asociado a la sesión actual.'
+        500:
+          description: 'Error interno.'
+    patch:
+      tags:
+        - pedidos
+      summary: 'Permite actualizar el estado de un pedido.'
+      description: ''
+      operationId: 'updateDelivery'
+      produces:
+        - 'application/json'
+      parameters:
+        - in: header
+          name: 'auth-token'
+          type: 'string'
+          format: 'jwt'
+          description: 'JWT de administrador.'
+          required: true
+        - in: path
+          name: id
+          description: 'ID del pedido que se desea actualizar.'
+          required: true
+          type: integer
+        - in: body
+          name: body
+          description: 'ID del estado al que se desea actualizar el pedido.'
+          required: true
+          schema:
+            type: 'object'
+            properties:
+              estado_id:
+                type: 'integer'
+                minimum: 1
+                maximum: 4
+      responses:
+        200:
+          description: 'Información del pedido actualizada.'
+          schema:
+            type: 'object'
+            properties:
+              message:
+                type: 'string'
+              data:
+                type: 'object'
+                properties:
+                  id:
+                    type: 'integer'
+                  email:
+                    type: 'string'
+                    format: 'email'
+                  estado:
+                    type: 'string'
+                  tipo_pago:
+                    type: 'string'
+                  fecha_hora:
+                    type: 'string'
+                    format: 'date-time'
+        400:
+          description: 'Request inválido. Es probable que el estado_id del body no sea un número entero.'
+        401:
+          description: 'Acceso denegado. El token no corresponde a un administrador.'
+        409:
+          description: 'Nada que actualizar. El pedido ya está en el estado deseado.'
+        500:
+          description: 'Error interno.'
+  /favorites:
+    get:
+      tags:
+        - favoritos
+      summary: 'Obtiene todos los favoritos asociados con la sesión actual.'
+      description: ''
+      operationId: 'getFavorites'
+      produces:
+        - 'application/json'
+      parameters:
+        - in: header
+          name: 'auth-token'
+          type: 'string'
+          format: 'jwt'
+          description: 'JWT de usuario o administrador.'
+          required: true
+      responses:
+        200:
+          description: 'Arreglo con todos los productos favoritos de un usuario.'
+          schema:
+            type: 'array'
+            items:
+              $ref: '#/definitions/Favorito'
+        401:
+          description: 'Acceso denegado. Es probable que aún no se haya iniciado sesión.'
+        404:
+          description: 'El usuario aún no ha añadido productos a favoritos. No hay favoritos.'
+        500:
+          description: 'Error interno.'
+    post:
+      tags:
+        - favoritos
+      summary: 'Añade un producto a favoritos.'
+      description: ''
+      operationId: 'addFavorite'
+      consumes:
+        - 'application/json'
+      produces:
+        - 'application/json'
+      parameters:
+        - in: header
+          name: 'auth-token'
+          type: 'string'
+          format: 'jwt'
+          description: 'JWT de usuario o administrador.'
+          required: true
+        - in: body
+          name: body
+          description: 'ID del producto que se desea añadir a favoritos.'
+          required: true
+          schema:
+            type: 'object'
+            properties:
+              producto_id:
+                type: 'integer'
+      responses:
+        200:
+          description: 'Producto añadido a favoritos.'
+          schema:
+            type: 'object'
+            properties:
+              message:
+                type: 'string'
+        400:
+          description: 'Request inválido.'
+        404:
+          description: 'El producto que se quiere añadir a favoritos no existe.'
+        500:
+          description: 'Error interno.'
+  /favorites/{productoId}:
+    delete:
+      tags:
+        - favoritos
+      summary: 'Elimina un producto de favoritos asociado con la sesión actual.'
+      description: ''
+      operationId: 'removeId'
+      produces:
+        - 'application/json'
+      parameters:
+        - in: header
+          name: 'auth-token'
+          type: 'string'
+          format: 'jwt'
+          description: 'JWT de administrador o usuario.'
+          required: true
+        - in: path
+          name: productoId
+          description: 'ID del producto que se desea eliminar de favoritos.'
+          required: true
+          type: integer
+      responses:
+        200:
+          description: 'Producto eliminado de favoritos.'
+          schema:
+            type: 'object'
+            properties:
+              message:
+                type: 'string'
+        400:
+          description: 'Request inválido.'
+        404:
+          description: 'El producto no está en los favoritos del usuario actual.'
+        500:
+          description: 'Error interno.'
+definitions:
+  Usuario:
+    type: 'object'
+    required:
+      - nombre
+      - apellido_p
+      - apellido_m
+      - direccion
+      - email
+      - pass
+    properties:
+      nombre:
+        type: 'string'
+      apellido_p:
+        type: 'string'
+      apellido_m:
+        type: 'string'
+      telefono:
+        type: 'string'
+        minLength: 10
+        maxLength: 10
+      direccion:
+        type: 'string'
+      email:
+        type: 'string'
+        format: 'email'
+      pass:
+        type: 'string'
+        minLength: 6
+        maxLength: 15
+  Producto:
+    type: 'object'
+    properties:
+      nombre:
+        type: 'string'
+      precio:
+        type: 'number'
+        format: 'float'
+  Orden:
+    type: 'object'
+    properties:
+      producto_id:
+        type: 'integer'
+      cantidad:
+        type: 'integer'
+  Pedido:
+    type: 'object'
+    properties:
+      id:
+        type: 'integer'
+      email:
+        type: 'string'
+        format: 'email'
+      estado:
+        type: 'string'
+      tipo_pago:
+        type: 'string'
+      fecha_hora:
+        type: 'string'
+        format: 'date-time'
+      total:
+        type: 'number'
+        format: 'float'
+      productos:
+        type: 'array'
+        items:
+          type: 'object'
+          properties:
+            nombre:
+              type: 'string'
+            precio:
+              type: 'number'
+              format: 'float'
+            cantidad:
+              type: 'integer'
+            total:
+              type: 'number'
+              format: 'float'
+  Favorito:
+    type: 'object'
+    properties:
+      id:
+        type: 'integer'
+      nombre:
+        type: 'string'
+      precio:
+        type: 'number'
+        format: 'float'
+externalDocs:
+  description: 'GitHub Repo'
+  url: 'https://github.com/justanindieguy/delilah-resto'
