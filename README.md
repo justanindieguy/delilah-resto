@@ -9,6 +9,7 @@ API Rest para restaurante.
 3. En la raíz deberá modificarse el archivo .env, el cual contiene las configuraciones relacionadas con la base de datos y el token.
    - En `PORT=` deberá especificarse el puerto en el que quiere que se ejecute el servidor; por default es el puerto 3000.
    - En `DB_NAME=` se indicará el nombre de la base de datos; por default es `delilah_resto`, no se recomienda cambiar este campo.
+   - En `DB_USER=` se deberá indicar el nombre del usuario con el que se desea conectar al sistema de gestión de la base de datos. Por default es el usuario `root`, no se recomienda cambiar este campo a menos que se quiera ingresar con otro usuario (en caso de ser así, es importante otorgar todos los privilegios al nuevo usuario dentro del SGBD).
    - En `DB_PASS=` se debe ingresar la contraseña del usuario `root` de la base de datos, esto depende de cómo hayas configurado el SGBD durante la instalación.
    - En `DB_TIMEZONE=` deberá proporcionarse la zona horaria deseada; por default corresponde a la zona horaria de la Ciudad de México: `Etc/GMT-5`.
    - En `TOKEN_SECRET=` se pasará la firma para la generación de tokens. Una vez fijada no deberá modificarse. Por defecto se proporciona la siguiente: `;KE>7C12d>0$"Su`.
