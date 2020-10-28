@@ -2,7 +2,7 @@ const { TOKEN_SECRET } = process.env;
 const { QueryTypes } = require('sequelize');
 const { validationResult } = require('express-validator');
 const { SERVER_ERROR_MSG } = require('../utils/messages');
-const { getInsertSentences, getUpdateSentences } = require('../utils/utils');
+const { getUpdateSentences } = require('../utils/utils');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const sequelize = require('../database/database');
@@ -11,16 +11,16 @@ const User = require('../models/User');
 async function registerUser(req, res) {
   const errors = validationResult(req);
 
-  if (!errors.isEmpty())
+  if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
+  }
 
   try {
-    // Convert number into string, so sequelize will accept the query.
-    if (req.body.telefono) req.body.telefono = String(req.body.telefono);
+    let { telefono, pass } = req.body;
+    const { nombre, apellido_p, apellido_m, direccion, email } = req.body;
 
-    const { email, telefono } = req.body;
-    const emailExists = await sequelize.query(
-      `SELECT id, email, rol_id FROM users WHERE email="${email}"`,
+    const [emailExists] = await sequelize.query(
+      `SELECT id FROM users WHERE email="${email}"`,
       {
         type: QueryTypes.SELECT,
         model: User,
@@ -29,13 +29,17 @@ async function registerUser(req, res) {
     );
 
     // Check if email already exists.
-    if (emailExists.length !== 0)
+    if (emailExists) {
       return res.status(409).json({ error: 'El email ya está registrado.' });
+    }
 
-    // Check if phone already exists.
     if (telefono) {
-      const phoneExists = await sequelize.query(
-        `SELECT id, email, rol_id FROM users WHERE telefono="${telefono}"`,
+      // Convert number into string, so sequelize will accept the query.
+      telefono = String(telefono);
+
+      // Check if phone already exists.
+      const [phoneExists] = await sequelize.query(
+        `SELECT id FROM users WHERE telefono="${telefono}"`,
         {
           type: QueryTypes.SELECT,
           model: User,
@@ -43,31 +47,26 @@ async function registerUser(req, res) {
         }
       );
 
-      if (phoneExists.length !== 0)
+      if (phoneExists) {
         return res
           .status(409)
           .json({ error: 'El teléfono ya está registrado.' });
+      }
     }
 
     // Hash the password.
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(req.body.pass, salt);
-    req.body.pass = hashedPassword;
-
-    const insertSentences = getInsertSentences(req.body);
+    const hashedPassword = await bcrypt.hash(pass, salt);
+    pass = hashedPassword;
 
     let id;
-    if (!telefono) {
+    if (telefono) {
       id = await sequelize.query(
-        `INSERT INTO users(nombre, apellido_p, apellido_m, email, pass, direccion) VALUES (${insertSentences.join(
-          ', '
-        )})`
+        `INSERT INTO users(nombre, apellido_p, apellido_m, telefono, email, pass, direccion) VALUES ("${nombre}", "${apellido_p}", "${apellido_m}", "${telefono}", "${email}", "${pass}", "${direccion}")`
       );
     } else {
       id = await sequelize.query(
-        `INSERT INTO users(nombre, apellido_p, apellido_m, telefono, email, pass, direccion) VALUES (${insertSentences.join(
-          ', '
-        )})`
+        `INSERT INTO users(nombre, apellido_p, apellido_m, email, pass, direccion) VALUES ("${nombre}", "${apellido_p}", "${apellido_m}", "${email}", "${pass}", "${direccion}")`
       );
     }
 
@@ -89,10 +88,11 @@ async function getUsers(req, res) {
       { type: QueryTypes.SELECT, model: User, mapToModel: true }
     );
 
-    if (users.length === 0)
+    if (users.length === 0) {
       return res
         .status(404)
         .json({ error: 'Aún no hay usuarios registrados.' });
+    }
 
     return res.status(200).json(users);
   } catch (err) {
@@ -107,8 +107,9 @@ async function getOneUser(req, res) {
 
     const user = await selectUser(userId);
 
-    if (!user)
+    if (!user) {
       return res.status(404).json({ error: 'Usuario no encontrado.' });
+    }
 
     return res.status(200).json(user);
   } catch (err) {
@@ -121,13 +122,15 @@ async function updateUser(req, res) {
   const errors = validationResult(req);
   const body = req.body;
 
-  if (!errors.isEmpty())
+  if (!errors.isEmpty()) {
     return res.status(400).json({ error: errors.array() });
+  }
 
-  if (Object.keys(body).length === 0 && body.constructor === Object)
+  if (Object.keys(body).length === 0 && body.constructor === Object) {
     return res
       .status(400)
       .json({ error: 'Se requiere por lo menos un campo para actualizar.' });
+  }
 
   try {
     const { id: userId } = req.user;
@@ -151,8 +154,9 @@ async function updateUser(req, res) {
       `UPDATE users SET ${setSentences.join(', ')} WHERE id=${userId}`
     );
 
-    if (result.affectedRows === 0)
+    if (result.affectedRows === 0) {
       return res.status(409).json({ message: 'Nada que actualizar.' });
+    }
 
     const user = await selectUser(userId);
 
@@ -183,8 +187,9 @@ async function selectUser(userId) {
 async function login(req, res) {
   const errors = validationResult(req);
 
-  if (!errors.isEmpty())
+  if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
+  }
 
   try {
     const { email, pass } = req.body;
@@ -197,18 +202,20 @@ async function login(req, res) {
       }
     );
 
-    if (!user)
+    if (!user) {
       return res
         .status(400)
         .json({ error: 'Usuario o contraseña incorrectos.' });
+    }
 
     // Check if password is correct.
     const validPass = await bcrypt.compare(pass, user.pass);
 
-    if (!validPass)
+    if (!validPass) {
       return res
         .status(400)
         .json({ error: 'Usuario o contraseña incorrectos.' });
+    }
 
     // Create and assign a token.
     const token = jwt.sign(

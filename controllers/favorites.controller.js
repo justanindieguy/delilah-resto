@@ -13,8 +13,9 @@ async function getFavorites(req, res) {
       { type: QueryTypes.SELECT, model: Product, mapToModel: true }
     );
 
-    if (favorites.length === 0)
+    if (favorites.length === 0) {
       return res.status(404).json({ error: 'Aún no tienes favoritos.' });
+    }
 
     return res.status(200).json(favorites);
   } catch (err) {
@@ -26,8 +27,9 @@ async function getFavorites(req, res) {
 async function addFavorite(req, res) {
   const errors = validationResult(req);
 
-  if (!errors.isEmpty())
+  if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
+  }
 
   try {
     const { id: userId } = req.user;
@@ -39,28 +41,32 @@ async function addFavorite(req, res) {
       { type: QueryTypes.SELECT, model: Product, mapToModel: true }
     );
 
-    if (!productExists)
+    if (!productExists) {
       return res
         .status(404)
         .json({ error: 'No se ha encontrado el producto.' });
+    }
 
     const result = await sequelize.query(
       `INSERT INTO favorites(usuario_id, producto_id) VALUES (${userId}, ${productId})`,
       { type: QueryTypes.INSERT }
     );
 
-    if (result)
+    if (result) {
       return res
         .status(200)
         .json({ message: 'Producto añadido a favoritos.' });
-    else throw new Error();
+    } else {
+      throw new Error();
+    }
   } catch (err) {
     console.error(err);
 
-    if (err instanceof Sequelize.UniqueConstraintError)
+    if (err instanceof Sequelize.UniqueConstraintError) {
       return res
         .status(409)
         .json({ error: 'Este producto ya está en tus favoritos.' });
+    }
 
     return res.status(500).json({ message: SERVER_ERROR_MSG });
   }
@@ -69,8 +75,9 @@ async function addFavorite(req, res) {
 async function removeFavorite(req, res) {
   const errors = validationResult(req);
 
-  if (!errors.isEmpty())
+  if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
+  }
 
   try {
     const { id: userId } = req.user;
@@ -82,19 +89,21 @@ async function removeFavorite(req, res) {
       { type: QueryTypes.SELECT }
     );
 
-    if (!favoriteExists)
+    if (!favoriteExists) {
       return res
         .status(404)
         .json({ error: 'Este producto no está en tus favoritos.' });
+    }
 
     const [results] = await sequelize.query(
       `DELETE FROM favorites WHERE usuario_id=${userId} AND producto_id=${productId}`
     );
 
-    if (results.affectedRows !== 0)
+    if (results.affectedRows !== 0) {
       return res
         .status(200)
         .json({ message: 'Producto eliminado de favoritos.' });
+    }
 
     throw new Error('Something went wrong.');
   } catch (err) {

@@ -21,8 +21,9 @@ function getOrderRows(deliveryId, orders) {
 async function createDelivery(req, res) {
   const errors = validationResult(req);
 
-  if (!errors.isEmpty())
+  if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
+  }
 
   try {
     const { id: userId } = req.user;
@@ -31,8 +32,9 @@ async function createDelivery(req, res) {
     // Check if all the products in req.body exists in the database.
     const productsExists = await verifyProducts(ordenes);
 
-    if (!productsExists)
+    if (!productsExists) {
       return res.status(404).json({ error: 'El producto no existe.' });
+    }
 
     // Create a new delivery and get its id.
     const [deliveryId] = await sequelize.query(
@@ -77,8 +79,9 @@ async function getAllDeliveries(req, res) {
       { type: QueryTypes.SELECT }
     );
 
-    if (deliveries.length === 0)
+    if (deliveries.length === 0) {
       return res.status(404).json({ error: 'Aún no hay pedidos.' });
+    }
 
     for (let delivery of deliveries) {
       const { id: deliveryId } = delivery;
@@ -103,8 +106,9 @@ async function getUserDeliveries(req, res) {
       { type: QueryTypes.SELECT }
     );
 
-    if (deliveries.length === 0)
+    if (deliveries.length === 0) {
       return res.status(404).json({ message: 'Aún no tienes pedidos.' });
+    }
 
     for (let delivery of deliveries) {
       const { id: deliveryId } = delivery;
@@ -123,8 +127,9 @@ async function getUserDeliveries(req, res) {
 async function getOneDelivery(req, res) {
   const errors = validationResult(req);
 
-  if (!errors.isEmpty())
+  if (!errors.isEmpty()) {
     return res.status(400).json({ error: errors.array() });
+  }
 
   try {
     const { id: userId } = req.user;
@@ -136,11 +141,12 @@ async function getOneDelivery(req, res) {
       { type: QueryTypes.SELECT }
     );
 
-    if (!delivery)
+    if (!delivery) {
       return res.status(404).json({
         error:
           'No hay ningún pedido con el ID indicado asociado a este usuario.',
       });
+    }
 
     await getDeliveryTotal(delivery, deliveryId);
     await getDeliveryProducts(delivery, deliveryId);
@@ -177,13 +183,15 @@ async function updateDelivery(req, res) {
   const errors = validationResult(req);
   const body = req.body;
 
-  if (!errors.isEmpty())
+  if (!errors.isEmpty()) {
     return res.status(400).json({ error: errors.array() });
+  }
 
-  if (Object.keys(body).length === 0 && body.constructor === Object)
+  if (Object.keys(body).length === 0 && body.constructor === Object) {
     return res
       .status(400)
       .json({ error: 'Se requiere por lo menos un campo para actualizar.' });
+  }
 
   try {
     const { id } = req.params;
@@ -193,8 +201,9 @@ async function updateDelivery(req, res) {
       `UPDATE deliveries SET estado_id=${estado_id} WHERE id=${id}`
     );
 
-    if (result.affectedRows === 0)
+    if (result.affectedRows === 0) {
       return res.status(409).json({ message: 'Nada que actualizar.' });
+    }
 
     // prettier-ignore
     const [product] = await sequelize.query(
