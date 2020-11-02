@@ -669,6 +669,42 @@ paths:
           description: 'Nada que actualizar. El pedido ya está en el estado deseado.'
         500:
           description: 'Error interno.'
+    delete:
+      tags:
+        - pedidos
+      summary: 'Permite eliminar un pedido y todas las ordenes asociadas.'
+      description: ''
+      operationId: 'deleteDelivery'
+      produces:
+        - 'application/json'
+      parameters:
+        - in: header
+          name: 'auth-token'
+          type: 'string'
+          format: 'jwt'
+          description: 'JWT de administrador.'
+          required: true
+        - in: path
+          name: id
+          description: 'ID del pedido que se desea eliminar.'
+          type: integer
+          required: true
+      responses:
+        200:
+          description: 'Pedido eliminado.'
+          schema:
+            type: 'object'
+            properties:
+              message:
+                type: 'string'
+        400:
+          description: 'Request inválido. Es probable que la ID del pedido no tenga un formato correcto.'
+        401:
+          description: 'Acceso denegado. El token no corresponde a un administrador.'
+        404:
+          description: 'No se ha encontrado el pedido con el ID específicado.'
+        500:
+          description: 'Error interno.'
   /favorites:
     get:
       tags:

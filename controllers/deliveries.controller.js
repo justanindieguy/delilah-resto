@@ -220,10 +220,43 @@ async function updateDelivery(req, res) {
   }
 }
 
+async function deleteDelivery(req, res) {
+  const errors = validationResult(req);
+  const { id: deliveryId } = req.params;
+
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  try {
+    const [deliveryExists] = await sequelize.query(
+      `SELECT id, fecha_hora FROM deliveries WHERE id=${deliveryId}`
+    );
+
+    if (!deliveryExists) {
+      return res.status(404).json({ error: 'Pedido no encontrado.' });
+    }
+
+    const [results] = await sequelize.query(
+      `DELETE FROM deliveries WHERE id=${deliveryId}`
+    );
+
+    if (results.affectedRows !== 0) {
+      return res.status(200).json({ message: 'Pedido eliminado.' });
+    }
+
+    throw new Error('Something went wrong.');
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: SERVER_ERROR_MSG });
+  }
+}
+
 module.exports = {
   createDelivery,
   getAllDeliveries,
   getUserDeliveries,
   getOneDelivery,
   updateDelivery,
+  deleteDelivery,
 };

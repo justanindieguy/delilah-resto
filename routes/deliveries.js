@@ -34,4 +34,12 @@ router.patch(
   controller.updateDelivery
 );
 
+router.delete(
+  '/:id',
+  idValidator,
+  token.verifyToken,
+  token.checkIfIsAdmin,
+  controller.deleteDelivery
+);
+
 module.exports = router;
